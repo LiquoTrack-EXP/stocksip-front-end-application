@@ -35,6 +35,7 @@ export const ProductService = {
   registerProduct(accountId, formData) {
     return httpClient.post(`/accounts/${accountId}/products`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
     });
   },
 

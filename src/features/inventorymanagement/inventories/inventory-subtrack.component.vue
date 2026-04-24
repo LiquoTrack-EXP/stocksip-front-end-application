@@ -15,7 +15,8 @@ const warehouseId = route.params.warehouseId || '';
 const productId = route.params.productId || '';
 
 const formState = ref({
-  quantityToDecrease: '',
+  productId: '',
+  quantity: '',
   exitType: '',
   expirationDate: ''
 });
@@ -25,11 +26,22 @@ const currentMaxStock = ref(0);
 
 const goBack = () => router.go(-1);
 
+const onProductSelected = () => {
+  // Update max stock based on selected product
+  if (formState.value.productId === 'p1') {
+    currentMaxStock.value = 50;
+  } else if (formState.value.productId === 'p2') {
+    currentMaxStock.value = 30;
+  } else {
+    currentMaxStock.value = 0;
+  }
+};
+
 const saveSubtrack = async () => {
   isLoading.value = true;
   try {
-    await InventoryService.subtractProducts(warehouseId, productId, {
-      quantityToDecrease: Number(formState.value.quantityToDecrease),
+    await InventoryService.subtractProducts(warehouseId, formState.value.productId, {
+      quantityToDecrease: Number(formState.value.quantity),
       exitType: formState.value.exitType,
       expirationDate: formState.value.expirationDate || null
     });

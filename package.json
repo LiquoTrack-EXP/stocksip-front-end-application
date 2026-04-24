@@ -11,8 +11,9 @@
   "dependencies": {
     "@primeuix/themes": "^2.0.3",
     "axios": "^1.15.2",
-    "primevue": "^4.5.4",
+    "primevue": "^4.5.5",
     "vue": "^3.5.29",
+    "vue-axios": "^3.5.2",
     "vue-i18n": "^11.3.2",
     "vue-router": "^4.6.4"
   },

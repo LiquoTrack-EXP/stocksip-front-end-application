@@ -20,7 +20,6 @@ export default {
         brand: "",
         currency: "PEN",
         unitPrice: null,
-        code: "",
         minStock: null,
         contentCapacity: null,
         supplierId: "",
@@ -45,37 +44,42 @@ export default {
      * @public
      */
     async fetchDropdownData() {
-      try {
-        const [brandsRes, typesRes] = await Promise.all([
-          BrandService.getAllBrands(),
-          ProductTypeService.getAllProductTypes()
-        ]);
-        this.brands = brandsRes.data || [];
-        this.productTypes = typesRes.data || [];
-      } catch (err) {
-        console.error("Error fetching dropdowns from API, using fallback data:", err);
+      const fallbackBrands = [
+        { _id: '69ea57f4e35cede8f7c20d76', name: 'Tabernero' },
+        { _id: '69ea57f4e35cede8f7c20d77', name: 'SantiagoQueirolo' },
+        { _id: '69ea57f4e35cede8f7c20d78', name: 'Pilsen' },
+        { _id: '69ea57f4e35cede8f7c20d79', name: 'Cristal' },
+        { _id: '69ea57f4e35cede8f7c20d7a', name: 'Cusqueña' },
+        { _id: '69ea57f4e35cede8f7c20d7b', name: 'JhonnyWalker' }
+      ];
+      const fallbackTypes = [
+        { _id: '69ea57f4e35cede8f7c20d85', name: 'Tequilas' },
+        { _id: '69ea57f4e35cede8f7c20d86', name: 'Vodkas' },
+        { _id: '69ea57f4e35cede8f7c20d87', name: 'Gins' },
+        { _id: '69ea57f4e35cede8f7c20d88', name: 'Cocktails' },
+        { _id: '69ea57f4e35cede8f7c20d89', name: 'Juices' },
+        { _id: '69ea57f4e35cede8f7c20d8a', name: 'SoftDrinks' },
+        { _id: '69ea57f4e35cede8f7c20d8b', name: 'Others' }
+      ];
 
-        this.brands = [
-          { _id: '69ea57f4e35cede8f7c20d76', name: 'Tabernero' },
-          { _id: '69ea57f4e35cede8f7c20d77', name: 'SantiagoQueirolo' },
-          { _id: '69ea57f4e35cede8f7c20d78', name: 'Pilsen' },
-          { _id: '69ea57f4e35cede8f7c20d79', name: 'Cristal' },
-          { _id: '69ea57f4e35cede8f7c20d7a', name: 'Cusqueña' },
-          { _id: '69ea57f4e35cede8f7c20d7b', name: 'JhonnyWalker' }
-        ];
-        this.productTypes = [
-          { _id: '69ea57f4e35cede8f7c20d85', name: 'Tequilas' },
-          { _id: '69ea57f4e35cede8f7c20d86', name: 'Vodkas' },
-          { _id: '69ea57f4e35cede8f7c20d87', name: 'Gins' },
-          { _id: '69ea57f4e35cede8f7c20d88', name: 'Cocktails' },
-          { _id: '69ea57f4e35cede8f7c20d89', name: 'Juices' },
-          { _id: '69ea57f4e35cede8f7c20d8a', name: 'SoftDrinks' },
-          { _id: '69ea57f4e35cede8f7c20d8b', name: 'Others' }
-        ];
-      }
+      const [brandsResult, typesResult] = await Promise.allSettled([
+        BrandService.getAllBrands(),
+        ProductTypeService.getAllProductTypes()
+      ]);
 
-      if (this.brands.length > 0 && !this.form.brand) this.form.brand = this.brands[0]._id || this.brands[0].id;
-      if (this.productTypes.length > 0 && !this.form.type) this.form.type = this.productTypes[0]._id || this.productTypes[0].id;
+      this.brands = (brandsResult.status === 'fulfilled' && brandsResult.value.data?.length)
+        ? brandsResult.value.data
+        : fallbackBrands;
+
+      this.productTypes = (typesResult.status === 'fulfilled' && typesResult.value.data?.length)
+        ? typesResult.value.data
+        : fallbackTypes;
+
+      if (brandsResult.status === 'rejected') console.warn('[ProductCreate] Brands no disponibles desde API, usando fallback.');
+      if (typesResult.status === 'rejected') console.warn('[ProductCreate] ProductTypes no disponibles desde API, usando fallback.');
+
+      if (this.brands.length > 0 && !this.form.brand) this.form.brand = this.brands[0].name;
+      if (this.productTypes.length > 0 && !this.form.type) this.form.type = this.productTypes[0].name;
     },
     onImageChange(e) {
       this.imageFile = e.target.files[0] || null;
@@ -88,13 +92,12 @@ export default {
 
         const formData = new FormData();
         formData.append('Name', this.form.name);
-        formData.append('ProductTypeId', this.form.type);
-        formData.append('BrandId', this.form.brand);
+        formData.append('Type', this.form.type);
+        formData.append('Brand', this.form.brand);
         formData.append('UnitPrice', this.form.unitPrice);
-        formData.append('Code', this.form.code || '');
+        formData.append('Code', this.form.currency);
         formData.append('MinimumStock', this.form.minStock);
         formData.append('Content', this.form.contentCapacity);
-        formData.append('CurrencyCode', this.form.currency);
         if (this.form.supplierId) formData.append('SupplierId', this.form.supplierId);
         if (this.imageFile) formData.append('Image', this.imageFile);
 
@@ -102,8 +105,20 @@ export default {
         alert("Producto registrado con éxito");
         this.$router.push('/storage');
       } catch (err) {
-        console.error('Error creating product:', err.response?.data);
-        alert('Error al crear producto: ' + (err.response?.data?.message || 'Error desconocido'));
+        const status = err.response?.status;
+        const body   = err.response?.data;
+        console.error('[addProduct] HTTP status:', status);
+        console.error('[addProduct] Response body:', JSON.stringify(body, null, 2));
+        console.error('[addProduct] Full error:', err);
+        const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+        const isNoResponse = !err.response;
+        let msg;
+        if (isTimeout || isNoResponse) {
+          msg = 'El servidor tardó demasiado en responder. Verifica que el backend esté activo y la base de datos conectada.';
+        } else {
+          msg = body?.message || body?.title || body?.error || JSON.stringify(body) || 'Error desconocido';
+        }
+        alert(`Error al crear producto: ${msg}`);
       } finally {
         this.isLoading = false;
       }
@@ -168,7 +183,7 @@ export default {
                   <span class="internal-label">{{ $t('products.type') }}</span>
                   <select v-model="form.type" required>
                     <option disabled value="">{{ $t('products.type') }}...</option>
-                    <option v-for="t in productTypes" :key="t._id || t.id" :value="t._id || t.id">{{ t.name }}</option>
+                    <option v-for="t in productTypes" :key="t._id || t.id" :value="t.name">{{ t.name }}</option>
                   </select>
                   <svg viewBox="0 0 24 24" class="chevron-icon"><path fill="currentColor" d="M7 10l5 5 5-5H7z"/></svg>
                 </div>
@@ -179,7 +194,7 @@ export default {
                   <span class="internal-label">{{ $t('products.brand') }}</span>
                   <select v-model="form.brand" required>
                     <option disabled value="">{{ $t('products.brand') }}...</option>
-                    <option v-for="b in brands" :key="b._id || b.id" :value="b._id || b.id">{{ b.name }}</option>
+                    <option v-for="b in brands" :key="b._id || b.id" :value="b.name">{{ b.name }}</option>
                   </select>
                   <svg viewBox="0 0 24 24" class="chevron-icon"><path fill="currentColor" d="M7 14l5-5 5 5H7z"/></svg> 
                 </div>

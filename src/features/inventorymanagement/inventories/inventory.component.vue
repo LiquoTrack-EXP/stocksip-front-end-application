@@ -49,19 +49,19 @@ onMounted(() => {
         
         <div class="actions-grid">
           
-          <button class="action-btn add-btn" @click="navigateTo(`/inventory-addition/${warehouseId}`)">
+          <button class="action-btn add-btn" @click="navigateTo(`/inventory_addition/${warehouseId}`)">
             <svg viewBox="0 0 24 24" class="action-icon"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
             <span class="action-label">Añadir</span>
           </button>
           
           
-          <button class="action-btn sub-btn" @click="navigateTo(`/inventory-subtrack/${warehouseId}`)">
+          <button class="action-btn sub-btn" @click="navigateTo(`/inventory_subtrack/${warehouseId}`)">
             <svg viewBox="0 0 24 24" class="action-icon"><path fill="currentColor" d="M19 13H5v-2h14v2z"/></svg>
             <span class="action-label">Retirar</span>
           </button>
 
           
-          <button class="action-btn transfer-btn" @click="navigateTo(`/inventory-transfer/${warehouseId}`)">
+          <button class="action-btn transfer-btn" @click="navigateTo(`/inventory_transfer/${warehouseId}`)">
             <svg viewBox="0 0 24 24" class="action-icon"><path fill="currentColor" d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/></svg>
             <span class="action-label">Transferir</span>
           </button>
