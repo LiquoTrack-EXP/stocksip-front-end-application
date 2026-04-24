@@ -4,9 +4,9 @@
  * @displayName inventory-addition.component
  * @version 1.0.0
  */
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { InventoryService } from '@/features/inventorymanagement/services/inventory.service';
+import { InventoryService, ProductService } from '@/features/inventorymanagement/services/inventory.service';
 
 const router = useRouter();
 const route = useRoute();
@@ -15,19 +15,62 @@ const warehouseId = route.params.warehouseId || '';
 const productId = route.params.productId || '';
 
 const formState = ref({
-  quantityToAdd: '',
+  productId: '',
+  quantity: '',
   expirationDate: ''
 });
 
 const isLoading = ref(false);
+const products = ref([]);
+const productsLoading = ref(false);
+
+const loadProducts = async () => {
+  productsLoading.value = true;
+  try {
+    const accountId = localStorage.getItem('accountId');
+    if (!accountId) {
+      products.value = [];
+      return;
+    }
+    
+    console.log('Loading products for account:', accountId);
+    const response = await ProductService.getAccountProducts(accountId);
+    console.log('Account products response:', response);
+    console.log('Response data:', response.data);
+    
+    // Usar la misma lógica que el storage component
+    let productsData = [];
+    if (Array.isArray(response.data)) {
+      productsData = response.data;
+    } else if (response.data && Array.isArray(response.data.products)) {
+      productsData = response.data.products;
+    } else if (response.data && Array.isArray(response.data.items)) {
+      productsData = response.data.items;
+    } else {
+      productsData = [];
+    }
+    
+    console.log('Processed products data:', productsData);
+    products.value = productsData;
+  } catch (err) {
+    console.error('Error loading products:', err);
+    products.value = [];
+  } finally {
+    productsLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadProducts();
+});
 
 const goBack = () => router.go(-1);
 
 const saveAddition = async () => {
   isLoading.value = true;
   try {
-    await InventoryService.addProducts(warehouseId, productId, {
-      quantityToAdd: Number(formState.value.quantityToAdd),
+    await InventoryService.addProducts(warehouseId, formState.value.productId, {
+      quantityToAdd: Number(formState.value.quantity),
       expirationDate: formState.value.expirationDate || null
     });
     alert('Productos añadidos al inventario con éxito');
@@ -61,11 +104,14 @@ const saveAddition = async () => {
           <div class="field-item">
             <label class="field-label">Seleccionar Producto</label>
             <div class="input-wrapper editable-shadow">
-              <select v-model="formState.productId">
+              <select v-model="formState.productId" :disabled="productsLoading">
                 <option value="" disabled>Seleccione un producto del catálogo...</option>
-                <option value="p1">Vino Tinto Reserva 2018</option>
-                <option value="p2">Cerveza Artesanal IPA</option>
+                <option v-for="product in products" :key="product.id" :value="product.id">
+                  {{ product.name || product.title || `${product.brand} ${product.type}` }}
+                </option>
               </select>
+              <small v-if="productsLoading" class="loading-text">Cargando productos...</small>
+              <small v-else-if="products.length === 0" class="no-products-text">No hay productos disponibles</small>
             </div>
           </div>
 
@@ -203,6 +249,19 @@ const saveAddition = async () => {
   outline: none;
   border-color: #4a1b2a;
   box-shadow: 0 0 0 3px rgba(74, 27, 42, 0.1);
+}
+
+.loading-text,
+.no-products-text {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  margin-top: 4px;
+  display: block;
+  margin-left: 4px;
+}
+
+.no-products-text {
+  color: #e53e3e;
 }
 
 

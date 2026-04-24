@@ -66,6 +66,9 @@ export default {
     goToEdit(warehouseId) {
       this.$router.push(`/warehouses/edit/${warehouseId}`);
     },
+    goToInventory(warehouseId) {
+      this.$router.push(`/warehouse_inventory/${warehouseId}`);
+    },
   },
 };
 </script>
@@ -187,6 +190,8 @@ export default {
             class="warehouse-card glass-panel"
             v-for="w in warehouses"
             :key="w.id"
+            @click="goToInventory(w.warehouseId)"
+            style="cursor: pointer;"
           >
             <div
               class="card-image"
@@ -206,7 +211,7 @@ export default {
               </div>
               <button
                 class="icon-btn edit-btn"
-                @click="goToEdit(w.warehouseId)"
+                @click.stop="goToEdit(w.warehouseId)"
                 title="Editar"
               >
                 <svg viewBox="0 0 24 24" class="pencil-icon">

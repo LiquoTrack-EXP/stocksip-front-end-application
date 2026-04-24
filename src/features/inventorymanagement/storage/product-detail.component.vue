@@ -4,22 +4,49 @@
  * @displayName product-detail.component
  * @version 1.0.0
  */
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { ProductService } from '@/features/inventorymanagement/services/inventory.service';
 
 const router = useRouter();
+const route = useRoute();
 
 const product = ref({
-  id: 'p1',
-  name: 'Vino Tinto Reserva 2018',
-  type: 'Vino',
-  brand: 'Concha y Toro',
-  imageUrl: 'https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&q=80&w=400',
-  unitPrice: 25.50,
+  id: '',
+  name: '',
+  type: '',
+  brand: '',
+  imageUrl: '',
+  unitPrice: 0,
   currencyCode: 'USD',
-  minimumStock: 10,
-  totalStockInWarehouse: 145,
-  content: 750
+  minimumStock: 0,
+  totalStockInWarehouse: 0,
+  content: 0
+});
+
+onMounted(async () => {
+  const productId = route.params.productId;
+  if (!productId) return;
+  
+  try {
+    const res = await ProductService.getProductById(productId);
+    const data = res.data;
+    
+    product.value = {
+      id: data.id || productId,
+      name: data.name || '',
+      type: data.type || '',
+      brand: data.brand || '',
+      imageUrl: data.imageUrl || '',
+      unitPrice: data.unitPrice || 0,
+      currencyCode: data.code || 'USD',
+      minimumStock: data.minimumStock || 0,
+      totalStockInWarehouse: data.totalStockInWarehouse || 0,
+      content: data.content || 0
+    };
+  } catch (err) {
+    console.error('Error fetching product details:', err);
+  }
 });
 
 const showDeleteConfirm = ref(false);

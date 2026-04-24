@@ -15,13 +15,15 @@ const warehouseId = route.params.warehouseId || '';
 const productId = route.params.productId || '';
 
 const formState = ref({
-  destinationWarehouseId: '',
-  quantityToTransfer: '',
+  productId: '',
+  targetWarehouseId: '',
+  quantity: '',
   expirationDate: ''
 });
 
 const isLoading = ref(false);
 const warehouses = ref([]);
+const currentMaxStock = ref(0);
 
 onMounted(async () => {
   try {
@@ -37,12 +39,21 @@ onMounted(async () => {
 
 const goBack = () => router.go(-1);
 
+const onProductSelected = () => {
+  // Update max stock based on selected product
+  if (formState.value.productId === 'p1') {
+    currentMaxStock.value = 120;
+  } else {
+    currentMaxStock.value = 0;
+  }
+};
+
 const executeTransfer = async () => {
   isLoading.value = true;
   try {
-    await InventoryService.transferProducts(warehouseId, productId, {
-      destinationWarehouseId: formState.value.destinationWarehouseId,
-      quantityToTransfer: Number(formState.value.quantityToTransfer),
+    await InventoryService.transferProducts(warehouseId, formState.value.productId, {
+      destinationWarehouseId: formState.value.targetWarehouseId,
+      quantityToTransfer: Number(formState.value.quantity),
       expirationDate: formState.value.expirationDate || null
     });
     alert('Transferencia realizada con éxito');

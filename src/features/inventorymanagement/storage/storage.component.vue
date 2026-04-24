@@ -36,8 +36,16 @@ export default {
          */
         if (!accountId) { this.isLoading = false; return; }
         const response = await ProductService.getAccountProducts(accountId);
-        this.products = response.data.products || [];
-        this.maxProducts = response.data.maxProductsAllowed || 0;
+        if (Array.isArray(response.data)) {
+          this.products = response.data;
+        } else if (response.data && Array.isArray(response.data.products)) {
+          this.products = response.data.products;
+        } else if (response.data && Array.isArray(response.data.items)) {
+          this.products = response.data.items;
+        } else {
+          this.products = [];
+        }
+        this.maxProducts = response.data?.maxProductsAllowed || 0;
       } catch (err) {
         console.error('Error fetching products:', err);
         this.error = 'No se pudieron cargar los productos.';
@@ -49,7 +57,7 @@ export default {
       this.$router.push("/storage/create");
     },
     goToDetail(productId) {
-      this.$router.push(`/storage/${productId}`);
+      this.$router.push(`/product_detail/${productId}`);
     },
   },
 };
@@ -182,7 +190,38 @@ export default {
 
         
         <div v-else class="products-grid">
-          
+          <div
+            class="product-card glass-panel"
+            v-for="product in products"
+            :key="product.id || product.productId"
+            @click="goToDetail(product.id || product.productId)"
+            style="cursor: pointer;"
+          >
+            <div class="product-img-wrap">
+              <img v-if="product.imageUrl" :src="product.imageUrl" alt="Product" class="product-img" />
+              <div v-else class="img-placeholder">
+                <svg viewBox="0 0 24 24" class="ph-icon"><path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+              </div>
+            </div>
+
+            <div class="card-details">
+              <h3 class="product-name">{{ product.name }}</h3>
+              <p class="product-meta">{{ product.brand || 'Marca no especificada' }} • {{ product.type || 'Tipo no especificado' }}</p>
+
+              <div class="stat-divider-horizontal"></div>
+
+              <div class="product-footer">
+                <div class="skel-column">
+                  <span class="skel-mb-sm footer-label">Precio</span>
+                  <span class="footer-value">{{ product.unitPrice }} {{ product.code || 'USD' }}</span>
+                </div>
+                <div class="skel-column" style="align-items: flex-end">
+                  <span class="skel-mb-sm footer-label">Stock Min</span>
+                  <span class="footer-value">{{ product.minimumStock || 0 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -436,6 +475,69 @@ export default {
   font-weight: 500;
 }
 
+.product-img-wrap {
+  width: 100%;
+  height: 190px;
+  background: rgba(43, 0, 13, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(43, 0, 13, 0.06);
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.ph-icon {
+  width: 48px;
+  height: 48px;
+  color: rgba(43, 0, 13, 0.2);
+}
+
+.product-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--top-bg);
+  margin: 0 0 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-meta {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.product-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.footer-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.footer-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--top-bg);
+}
 
 @media (max-width: 768px) {
   .storage-container {

@@ -8,7 +8,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { CatalogService } from '@/features/procurementordering/services/procurement.service';
-import { WarehouseService } from '@/features/inventorymanagement/services/inventory.service';
+import { WarehouseService, ProductService } from '@/features/inventorymanagement/services/inventory.service';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -73,10 +73,26 @@ const selectWarehouse = async (id) => {
   showWarehouseDialog.value = false;
 
   try {
-    const res = await WarehouseService.getWarehouseProducts(id);
-    warehouseProducts.value = res.data || [];
+    const accountId = localStorage.getItem('accountId');
+    const res = await ProductService.getAccountProducts(accountId);
+    
+    let productsArray = [];
+    if (Array.isArray(res.data)) {
+      productsArray = res.data;
+    } else if (res.data && Array.isArray(res.data.products)) {
+      productsArray = res.data.products;
+    } else if (res.data && Array.isArray(res.data.items)) {
+      productsArray = res.data.items;
+    }
+
+    warehouseProducts.value = productsArray.map(p => ({
+      productId: p.id || p.productId,
+      name: p.name,
+      unitPrice: p.unitPrice,
+      moneyCode: p.code || p.moneyCode || 'USD'
+    }));
   } catch (err) {
-    console.error('Error loading warehouse products:', err);
+    console.error('Error loading account products:', err);
     warehouseProducts.value = [];
   }
   showProductDialog.value = true;
@@ -125,7 +141,9 @@ const confirmProductsSelection = async () => {
           });
           catalogItems.value = res.data.catalogItems || catalogItems.value;
         } catch (err) {
-          console.error('Error adding item to catalog:', err.response?.data);
+          const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+          console.error('Error adding item to catalog:', errMsg);
+          alert('Validation Error for Item: ' + errMsg);
         }
       }
     }
@@ -172,7 +190,9 @@ const saveCatalog = async () => {
             stock: item.availableStock
           });
         } catch (err) {
-          console.error('Error adding pending item:', err);
+          const errMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+          console.error('Error adding pending item:', errMsg);
+          alert('Validation Error for Item: ' + errMsg);
         }
       }
     }
