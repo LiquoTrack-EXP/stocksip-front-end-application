@@ -1,0 +1,162 @@
+{
+  "auth": {
+    "login": { "title": "Iniciar Sesión", "email": "Correo Electrónico", "password": "Contraseña", "button": "Ingresar", "register_prompt": "¿No tienes una cuenta? Regístrate aquí" },
+    "register": { "title": "Crear Cuenta", "first_name": "Nombre", "last_name": "Apellido", "email": "Correo Electrónico", "password": "Contraseña", "phone": "Número de Teléfono", "role": "Rol", "button": "Registrarse", "login_prompt": "¿Ya tienes una cuenta? Inicia sesión" },
+    "recover": { "title": "Recuperar Contraseña", "email": "Dirección de Correo", "button": "Enviar Enlace", "back_to_login": "Volver al Login" }
+  },
+  "nav": {
+    "home": "Inicio", "warehouses": "Almacenes", "inventory": "Inventario", "products": "Productos",
+    "care_guides": "Guías de Cuidado", "catalogs": "Catálogos", "orders": "Pedidos",
+    "supplier_orders": "Ventas (Prov.)", "suppliers": "Proveedores", "cart": "Carrito",
+    "subscriptions": "Suscripciones", "profile": "Perfil", "admin": "Panel de Administración", "logout": "Cerrar Sesión"
+  },
+  "common": {
+    "save": "Guardar", "cancel": "Cancelar", "create": "Crear", "edit": "Editar", "delete": "Eliminar",
+    "back": "Volver", "error_loading": "Error al cargar", "retry": "Reintentar", "confirm": "Confirmar",
+    "save_changes": "Guardar Cambios", "create_catalog": "Crear Catálogo", "loading": "Cargando...",
+    "no_data": "No hay datos disponibles", "search": "Buscar", "filter": "Filtrar", "all": "Todos",
+    "status": "Estado", "actions": "Acciones", "name": "Nombre", "yes": "Sí", "no": "No",
+    "close": "Cerrar", "reload": "Recargar", "new": "Nuevo", "available": "Disponible"
+  },
+  "home": {
+    "title": "Inicio", "hero_title": "Transforma tu Inventario",
+    "hero_subtitle": "Desbloquea funciones premium para optimizar las operaciones de tu negocio.",
+    "upgrade_btn": "Actualizar Ahora",
+    "features": {
+      "new_product": { "title": "Nuevo Producto", "description": "¿Cómo quieres empezar?", "button": "Agregar Producto" },
+      "catalogs": { "title": "Agregar Catálogos", "description": "Organiza tus productos", "button": "Gestionar" },
+      "admin": { "title": "Panel de Administración", "description": "Gestiona tus usuarios", "button": "Agregar Usuario" },
+      "care_guides": { "title": "Guías de Cuidado", "description": "Aprende las mejores prácticas", "button": "Ver Guías" }
+    }
+  },
+  "profile": {
+    "title": "Mi Cuenta", "subtitle": "Visualiza y administra tus credenciales de usuario.",
+    "names": "Nombres", "last_names": "Apellidos", "email": "Correo Electrónico",
+    "phone": "Número de Teléfono", "role": "Rol", "edit_profile": "Editar Perfil",
+    "save_changes": "Guardar Cambios", "logout": "Cerrar Sesión",
+    "language": "Idioma", "language_label": "Seleccionar idioma",
+    "language_en": "Inglés", "language_es": "Español"
+  },
+  "warehouses": {
+    "title": "Almacenes", "subtitle": "Administra tus instalaciones de almacenamiento",
+    "new_warehouse": "Nuevo Almacén", "edit_warehouse": "Editar Almacén",
+    "capacity": "Capacidad", "temperature": "Rango de Temperatura", "address": "Dirección",
+    "fields": {
+      "name": "Nombre del almacén", "description": "Descripción", "address": "Dirección",
+      "capacity": "Capacidad (unidades)", "temp_min": "Temperatura mín. (°C)", "temp_max": "Temperatura máx. (°C)"
+    },
+    "empty_title": "Sin almacenes", "empty_desc": "Aún no has agregado ningún almacén.",
+    "messages": {
+      "create_success": "Almacén creado exitosamente",
+      "update_success": "Almacén actualizado exitosamente",
+      "delete_confirm": "¿Estás seguro de que deseas eliminar este almacén?"
+    }
+  },
+  "inventory": {
+    "title": "Inventario", "subtitle": "Controla los movimientos de tu stock",
+    "stock_in": "Entrada de Stock", "stock_out": "Salida de Stock", "transfer": "Transferencia",
+    "current_stock": "Stock Actual", "movement_history": "Historial de Movimientos",
+    "fields": { "quantity": "Cantidad", "reason": "Motivo", "notes": "Notas" },
+    "empty_title": "Sin movimientos", "empty_desc": "Aún no se han registrado movimientos de inventario."
+  },
+  "products": {
+    "title": "Productos", "subtitle": "Administra tu catálogo de productos",
+    "new_product": "Nuevo Producto", "edit_product": "Editar Producto",
+    "plural": "productos", "units": "unidades", "stock": "Stock",
+    "type": "Tipo", "brand": "Marca", "unit_price": "Precio Unitario",
+    "min_stock": "Stock Mínimo", "quantity": "Cantidad", "image": "Imagen del Producto",
+    "fields": {
+      "name": "Nombre del producto", "description": "Descripción", "type": "Tipo de producto",
+      "brand": "Marca", "unit_price": "Precio unitario", "min_stock": "Stock mínimo",
+      "quantity": "Cantidad inicial"
+    },
+    "empty_title": "Sin productos", "empty_desc": "Aún no has agregado ningún producto.",
+    "messages": {
+      "create_success": "Producto creado exitosamente",
+      "update_success": "Producto actualizado exitosamente",
+      "delete_confirm": "¿Estás seguro de que deseas eliminar este producto?"
+    }
+  },
+  "care_guides": {
+    "title": "Guías de Cuidado", "subtitle": "Administra la documentación de cuidado de productos",
+    "new_guide": "Nueva Guía de Cuidado", "upload": "Subir Archivo", "assign": "Asignar a Producto",
+    "fields": { "name": "Nombre de la guía", "description": "Descripción", "file": "Archivo (PDF, imagen)" },
+    "empty_title": "Sin guías", "empty_desc": "Aún no se han subido guías de cuidado.",
+    "messages": {
+      "create_success": "Guía de cuidado creada exitosamente",
+      "delete_confirm": "¿Estás seguro de que deseas eliminar esta guía?"
+    }
+  },
+  "catalogs": {
+    "title": "Mis Catálogos", "subtitle": "Gestiona y publica los catálogos de tu negocio.",
+    "new_catalog": "Nuevo Catálogo", "edit_catalog": "Editar Catálogo", "info": "Información del Catálogo",
+    "fields": { "name": "Nombre del catálogo", "description": "Descripción", "email": "Email de contacto" },
+    "products_in_catalog": "Productos en Catálogo",
+    "empty_items": "No hay productos seleccionados. Usa el botón + para agregar.",
+    "publish_catalog": "Publicar Catálogo",
+    "modal": { "warehouse": "Seleccionar Almacén", "products": "Seleccionar Productos", "stock_placeholder": "Ingresar stock disponible...", "added": "Agregado" },
+    "messages": { "update_success": "Catálogo actualizado exitosamente", "create_success": "Catálogo creado exitosamente", "delete_confirm": "¿Estás seguro de eliminar este catálogo?" },
+    "empty_title": "Sin catálogos", "empty_desc": "Aún no has creado ningún catálogo. Presiona \"Nuevo Catálogo\" para comenzar.",
+    "status": { "published": "Publicado", "draft": "Borrador" },
+    "publish": "Publicar", "unpublish": "Despublicar", "plural": "catálogos",
+    "item_details": {
+      "in_stock": "En Stock", "out_of_stock": "Agotado", "about_product": "Sobre el producto",
+      "select_quantity": "Seleccionar Cantidad", "add_to_cart": "Añadir {qty} al Carrito",
+      "added_success": "¡Agregado con éxito!", "added_desc": "Has añadido {qty} unidades de {name} a tu carrito de compras.",
+      "continue_shopping": "Seguir Comprando", "view_cart": "Ver Carrito",
+      "no_image": "Sin imagen", "price_not_available": "Precio no disponible"
+    }
+  },
+  "suppliers": {
+    "title": "Proveedores", "search_placeholder": "Buscar proveedor por nombre o email...",
+    "error_loading": "Error al cargar proveedores", "begin_search": "Comienza a buscar",
+    "begin_search_desc": "Escribe el nombre o correo del proveedor para ver sus catálogos.",
+    "not_found": "No se encontraron proveedores que coincidan con"
+  },
+  "supplier_catalog": {
+    "title": "Catálogo del Proveedor", "empty_title": "Sin catálogos publicados",
+    "empty_desc": "Este proveedor no tiene catálogos publicados en este momento."
+  },
+  "cart": {
+    "title": "Carrito de Compras", "subtitle": "Revisa los artículos seleccionados",
+    "empty_title": "Tu carrito está vacío", "empty_desc": "Explora catálogos de proveedores para agregar productos.",
+    "browse_btn": "Explorar Catálogos", "subtotal": "Subtotal", "total": "Total",
+    "checkout": "Realizar Pedido", "remove": "Eliminar", "quantity": "Cantidad",
+    "messages": { "order_success": "¡Pedido realizado exitosamente!", "order_error": "Error al realizar el pedido. Por favor intenta de nuevo." }
+  },
+  "orders": {
+    "title": "Pedidos", "purchase_orders": "Órdenes de Compra",
+    "purchase_subtitle": "Historial y seguimiento de tus adquisiciones a proveedores.",
+    "sales_orders": "Órdenes de Venta", "sales_subtitle": "Historial y seguimiento de tus ventas emitidas.",
+    "supplier_sales": "Ventas (Prov.)", "supplier_sales_subtitle": "Órdenes de compra recibidas de tus compradores.",
+    "recent": "Órdenes Recientes", "empty_purchase": "No tienes órdenes de compra",
+    "empty_purchase_desc": "Explora catálogos para empezar a adquirir inventario.",
+    "empty_sales": "Aún no hay órdenes", "empty_sales_desc": "Crea tu primera orden de venta para comenzar.",
+    "create_order": "Crear Orden", "process_to_sale": "Procesar a Orden de Venta",
+    "total_items": "Total de artículos", "generated_on": "Generado el",
+    "confirm": "Confirmar", "ship": "Enviar", "receive": "Recibir", "cancel": "Cancelar",
+    "status": { "pending": "Pendiente", "confirmed": "Confirmado", "shipped": "Enviado", "canceled": "Cancelado", "approved": "Aprobado" },
+    "fields": { "code": "Código de Orden", "date": "Fecha", "total": "Total", "items": "Artículos" },
+    "messages": { "convert_success": "La orden {id} ha sido convertida a orden de venta.", "convert_error": "No se pudo convertir la orden" }
+  },
+  "subscriptions": {
+    "title": "Suscripciones", "subtitle": "Administra tu plan y facturación",
+    "upgrade": "Mejorar Plan", "current_plan": "Tu Plan Actual",
+    "upgrade_plan": "Mejora tu Plan", "expiration_date": "Fecha de Expiración",
+    "choose_plan": "Elige un Plan", "choose_subtitle": "Selecciona el paquete que mejor se adapte a tu inventario.",
+    "save_badge": "¡Ahorra 39%!", "per_month": "/ mes", "per_year": "/ año",
+    "free": "Gratuito", "select": "Seleccionar", "selected": "Seleccionado", "continue": "Continuar al Pago",
+    "limits": { "users": "Usuarios", "warehouses": "Almacenes", "products": "Productos", "up_to": "Hasta {n}", "unlimited": "Ilimitados" },
+    "messages": { "activate_success": "¡Suscripción activada con éxito!", "upgrade_success": "¡Plan actualizado con éxito!", "activate_error": "Error al suscribirse", "upgrade_error": "No se pudo actualizar el plan" }
+  },
+  "admin": {
+    "title": "Panel de Administración", "subtitle": "Administra el acceso de usuarios a tu cuenta",
+    "new_user": "Nuevo Usuario", "manage_users": "Gestionar Usuarios",
+    "filters": { "all": "Todos", "admin": "Administrador", "employee": "Empleado" },
+    "user_count": "Usuarios", "limit_reached": "Límite de usuarios alcanzado para tu plan",
+    "empty_title": "Sin usuarios", "empty_desc": "No hay usuarios con este rol.",
+    "fields": { "name": "Nombre Completo", "email": "Correo Electrónico", "phone": "Teléfono", "role": "Rol", "password": "Contraseña" },
+    "view": { "title": "Detalles del Usuario", "account_id": "ID de Cuenta", "user_id": "ID de Usuario" },
+    "messages": { "delete_confirm": "¿Estás seguro que deseas retirar este permiso de acceso?", "delete_error": "No se pudo eliminar el usuario.", "create_success": "Usuario creado exitosamente", "update_success": "Usuario actualizado exitosamente" }
+  }
+}
