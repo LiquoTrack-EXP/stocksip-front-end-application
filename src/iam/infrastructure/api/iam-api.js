@@ -4,7 +4,7 @@ import {BaseEndpoint} from "@/shared/infrastructure/base-endpoint.js";
 const usersEndpoint = import.meta.env.VITE_USERS_ENDPOINT_PATH;
 const signInEndpoint = import.meta.env.VITE_SIGN_IN_ENDPOINT_PATH;
 const signUpEndpoint = import.meta.env.VITE_SIGN_UP_ENDPOINT_PATH;
-const registerWorkerEndpoint = import.meta.env.VITE_REGISTER_WORKER_ENDPOINT_PATH;
+const accountUsersEndpoint = import.meta.env.VITE_ACCOUNT_USERS_ENDPOINT_PATH;
 
 /**
  * @class IamApi
@@ -14,7 +14,7 @@ const registerWorkerEndpoint = import.meta.env.VITE_REGISTER_WORKER_ENDPOINT_PAT
 export class IamApi extends BaseApi {
     #signInEndpoint;
     #signUpEndpoint;
-    #registerWorkerEndpoint;
+    #accountUsersEndpoint;
     #usersEndpoint;
 
     /**
@@ -24,7 +24,7 @@ export class IamApi extends BaseApi {
         super();
         this.#signInEndpoint = new BaseEndpoint(this, signInEndpoint);
         this.#signUpEndpoint = new BaseEndpoint(this, signUpEndpoint);
-        this.#registerWorkerEndpoint = new BaseEndpoint(this, registerWorkerEndpoint);
+        this.#accountUsersEndpoint = new BaseEndpoint(this, accountUsersEndpoint);
         this.#usersEndpoint = new BaseEndpoint(this, usersEndpoint);
     }
 
@@ -51,11 +51,24 @@ export class IamApi extends BaseApi {
     /**
      * Register a worker in the system
      *
+     * @param {string} accountId - the account id
      * @param {Object} registerWorkerRequest - the request body
      * @returns {Promise} - the response
      */
-    registerWorker(registerWorkerRequest) {
-        return this.#registerWorkerEndpoint.create(registerWorkerRequest);
+    registerWorker(accountId, registerWorkerRequest) {
+        this.#accountUsersEndpoint.endpointPath = accountUsersEndpoint.replace('{accountId}', accountId);
+        return this.#accountUsersEndpoint.create(accountId, registerWorkerRequest);
+    }
+
+    /**
+     * Fetch users of an account
+     *
+     * @param {string} accountId - the account id
+     * @returns {Promise} - the response
+     */
+    fetchAccountUsers(accountId) {
+        this.#accountUsersEndpoint.endpointPath = accountUsersEndpoint.replace('{accountId}', accountId);
+        return this.#accountUsersEndpoint.getAll(accountId);
     }
 
     /**
@@ -64,7 +77,7 @@ export class IamApi extends BaseApi {
      * @param {string} userId - the user id
      * @returns {Promise} - the user, if found
      */
-    getUserById(userId) {
+    fetchUserById(userId) {
         return this.#usersEndpoint.getById(userId);
     }
 }

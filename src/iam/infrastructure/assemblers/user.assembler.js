@@ -8,7 +8,7 @@ export class UserAssembler {
 
     /**
      * @static
-     * @param {UserResource} resource - The user resource.
+     * @param {Object} resource - The user resource.
      * @returns {User} The User entity.
      */
     static toEntityFromResource(resource) {

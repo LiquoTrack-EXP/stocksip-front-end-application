@@ -3,16 +3,16 @@
  * @summary Represents a command for signing-in a user.
  */
 export class SignInCommand {
-    #username;
+    #email;
     #password;
 
     /**
      * @param {Object} params - the params needed for signing-in.
-     * @param {string} params.username - the username of the user.
+     * @param {string} params.email - the username of the user.
      * @param {string} params.password - the password of the user.
      */
-    constructor({username, password}) {
-        this.#username = username;
+    constructor({email, password}) {
+        this.#email = email;
         this.#password = password;
     }
 
@@ -20,8 +20,8 @@ export class SignInCommand {
      * Gets the username of the user.
      * @returns {string} The username of the user.
      */
-    get username() {
-        return this.#username;
+    get email() {
+        return this.#email;
     }
 
     /**
@@ -36,8 +36,8 @@ export class SignInCommand {
      * Sets the username of the user.
      * @param {string} value - the new username of the user.
      */
-    set username(value) {
-        this.#username = value;
+    set email(value) {
+        this.email = value;
     }
 
     /**

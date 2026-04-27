@@ -1,6 +1,6 @@
 /**
  * @class SignUpCommand
- * @summary Represents a command for signing-up a user.
+ * @summary Represents a command for signing up a user.
  */
 export class SignUpCommand {
     #username;
