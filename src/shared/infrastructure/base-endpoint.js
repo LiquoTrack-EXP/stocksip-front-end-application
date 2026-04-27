@@ -25,7 +25,7 @@ export class BaseEndpoint {
     /**
      * Retrieves a resource by its identifier.
      *
-     * @param {number} id - the unique identifier of the resource to be retrieved.
+     * @param {string} id - the unique identifier of the resource to be retrieved.
      * @returns {Promise} A promise that resolves to the retrieved resource.
      */
     getById(id) {
@@ -45,7 +45,7 @@ export class BaseEndpoint {
     /**
      * Updates a resource by its identifier.
      *
-     * @param {number} id - the unique identifier of the resource to be updated.
+     * @param {string} id - the unique identifier of the resource to be updated.
      * @param {Object} resource - the updated resource data to be sent in the request body.
      * @returns {Promise} A promise that resolves when a response is received from the server.
      */
@@ -56,7 +56,7 @@ export class BaseEndpoint {
     /**
      * Deletes a resource by its identifier.
      *
-     * @param {number} id - the unique identifier of the resource to be deleted.
+     * @param {string} id - the unique identifier of the resource to be deleted.
      * @returns {Promise} A promise that resolves when a response is received from the server.
      */
     delete(id) {

@@ -40,27 +40,31 @@ import PlanComponent from "@/subscriptions/plans/plan.component.vue";
 const routes = [
   {
     path: "/",
-    redirect: "/sign-in",
+    redirect: "/sign-in"
   },
   {
     path: "/sign-in",
     name: "sign-in",
     component: LoginComponent,
+    meta: { title: 'Sign-in' }
   },
   {
     path: "/sign-up",
     name: "sing-up",
     component: RegisterComponent,
+    meta: { title: 'Sign-up' }
   },
   {
     path: "/:pathMatch(.*)*",
     name: "not-found",
     component: PageNotFoundComponent,
+    meta: { title: 'Page Not Found' }
   },
   {
     path: "/home",
     name: "home",
     component: HomeComponent,
+
   },
   {
     path: "/warehouses",
@@ -172,9 +176,14 @@ const routes = [
   { path: "/account", name: "account", component: AccountComponent },
   { path: "/plans", name: "plans", component: PlanComponent },
 ];
+
+/**
+ * Vue Router instance for the application.
+ * Configures routes for IAM, Publishing, and Shared bounded contexts.
+ */
 const router = createRouter({
   history: createWebHistory(),
-  routes,
+  routes: routes,
 });
 
 export default router;
