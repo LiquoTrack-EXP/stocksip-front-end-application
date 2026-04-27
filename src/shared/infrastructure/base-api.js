@@ -5,7 +5,7 @@ const platformApi = import.meta.env.VITE_STOCKSIP_PLATFORM_API;
 /**
  * Base API class for making HTTP requests.
  */
-export class baseApi {
+export class BaseApi {
     #http;
 
     /**
