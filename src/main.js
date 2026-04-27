@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { PrimeVue } from '@primevue/core';
 import Material from '@primeuix/themes/material';
-import router from "./router/index.js";
+import router from "./router.js";
 import i18n from './i18n.js';
 import {
     Button,

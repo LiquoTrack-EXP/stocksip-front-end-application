@@ -1,5 +1,5 @@
 <script>
-import SideNavbarComponent from "./shared/components/side-navbar.vue";
+import SideNavbarComponent from "./shared/presentation/components/side-navbar.vue";
 export default {
   name: "App",
   components: {
