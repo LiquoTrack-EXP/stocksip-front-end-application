@@ -1,13 +1,13 @@
 /**
- * @class User
- * @summary Represents a user entity.
+ * @class UserResource
+ * @summary Represents a resource for a user.
  */
-export class User {
+export class UserResource {
 
     /**
      * @param {Object} params - the params related to the user
-     * @param {string} params.id - the identifier of the user
-     * @param {string} params.username - the name of the user
+     * @param {string} params.id - the unique identifier of the user
+     * @param {string} params.username - the username of the user
      * @param {string} params.email - the email of the user
      */
     constructor({id, username, email}) {
