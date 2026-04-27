@@ -20,8 +20,6 @@ const useIamStore = defineStore('iam', () => {
     /** @type {ref} */
     const errors = ref([]);
     /** @type {ref} */
-    const userLoaded = ref(false);
-    /** @type {ref} */
     const isSignedIn = ref(false);
     /** @type {string|null} */
     const currentUsername = ref(null);
@@ -166,13 +164,13 @@ const useIamStore = defineStore('iam', () => {
     return {
         users,
         errors,
-        usersLoaded,
         currentUsername,
         currentUserId,
         currentToken,
         isSignedIn,
         signIn,
         signUp,
+        registerWorker,
         fetchAccountUsers,
         signOut
     };
