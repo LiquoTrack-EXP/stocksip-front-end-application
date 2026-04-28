@@ -1,5 +1,5 @@
 <script>
-import { AuthService } from '../services/auth.service.js';
+import { AuthService } from '../../services/auth.service.js';
 
 /**
  * RegisterComponent component.

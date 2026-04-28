@@ -1,5 +1,5 @@
 <script>
-import { AuthService } from './data/remote/services/AuthService.js';
+import { AuthService } from '../../login/data/remote/services/AuthService.js';
 
 /**
  * LoginComponent component.
