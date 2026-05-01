@@ -4,12 +4,14 @@
  * @displayName inventory-subtrack.component
  * @version 1.0.0
  */
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { InventoryService } from '@/features/inventorymanagement/services/inventory.service';
+import { useToast } from 'primevue/usetoast';
+import { InventoryService, WarehouseService } from '@/features/inventorymanagement/services/inventory.service';
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
 const warehouseId = route.params.warehouseId || '';
 const productId = route.params.productId || '';
@@ -22,34 +24,64 @@ const formState = ref({
 });
 
 const isLoading = ref(false);
+const products = ref([]);
 const currentMaxStock = ref(0);
 
 const goBack = () => router.go(-1);
 
+onMounted(async () => {
+  if (warehouseId) {
+    try {
+      const res = await WarehouseService.getWarehouseProducts(warehouseId);
+      let data = res.data;
+      if (!Array.isArray(data)) {
+        if (data.products && Array.isArray(data.products)) data = data.products;
+        else if (data.items && Array.isArray(data.items)) data = data.items;
+        else data = [];
+      }
+      products.value = data.map(item => ({
+        id: item.productId || item.id,
+        name: item.productName || item.name || 'Producto sin nombre',
+        stock: item.availableStock || item.stock || item.quantity || 0
+      }));
+    } catch (err) {
+      console.error('Error loading warehouse products:', err);
+    }
+  }
+});
+
 const onProductSelected = () => {
-  // Update max stock based on selected product
-  if (formState.value.productId === 'p1') {
-    currentMaxStock.value = 50;
-  } else if (formState.value.productId === 'p2') {
-    currentMaxStock.value = 30;
+  const selectedProduct = products.value.find(p => p.id === formState.value.productId);
+  if (selectedProduct) {
+    currentMaxStock.value = selectedProduct.stock;
   } else {
     currentMaxStock.value = 0;
   }
 };
 
 const saveSubtrack = async () => {
+  const qty = Number(formState.value.quantity);
+  if (qty > 10000) {
+    toast.add({ severity: 'error', summary: 'Límite Excedido', detail: 'El máximo permitido por retiro es de 10,000 unidades.', life: 5000 });
+    return;
+  }
+  if (qty > currentMaxStock.value) {
+    toast.add({ severity: 'error', summary: 'Stock Insuficiente', detail: 'La cantidad excede el stock disponible.', life: 5000 });
+    return;
+  }
+
   isLoading.value = true;
   try {
     await InventoryService.subtractProducts(warehouseId, formState.value.productId, {
-      quantityToDecrease: Number(formState.value.quantity),
+      quantityToDecrease: qty,
       exitType: formState.value.exitType,
       expirationDate: formState.value.expirationDate || null
     });
-    alert('Productos retirados del inventario con éxito');
-    router.go(-1);
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Productos retirados del inventario con éxito', life: 3000 });
+    setTimeout(() => router.go(-1), 1000);
   } catch (err) {
     console.error('Error subtracting products:', err.response?.data);
-    alert('Error: ' + (err.response?.data?.message || 'No se pudo retirar'));
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'No se pudo retirar', life: 5000 });
   } finally {
     isLoading.value = false;
   }
@@ -78,8 +110,9 @@ const saveSubtrack = async () => {
             <div class="input-wrapper editable-shadow">
               <select v-model="formState.productId" @change="onProductSelected">
                 <option value="" disabled>Seleccione el producto a retirar...</option>
-                <option value="p1">Vino Tinto Reserva 2018 (50 disponibles)</option>
-                <option value="p2">Cerveza Artesanal IPA (30 disponibles)</option>
+                <option v-for="p in products" :key="p.id" :value="p.id">
+                  {{ p.name }} ({{ p.stock }} disponibles)
+                </option>
               </select>
             </div>
           </div>

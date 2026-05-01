@@ -6,10 +6,12 @@
  */
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useToast } from 'primevue/usetoast';
 import { ProductService } from '@/features/inventorymanagement/services/inventory.service';
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
 const productId = computed(() => route.params.productId);
 
@@ -63,6 +65,11 @@ const triggerImageSelect = () => document.getElementById('imageUpload').click();
 const goBack = () => router.go(-1);
 
 const saveProduct = async () => {
+  if (/^\d+$/.test(formState.value.name)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre del producto no puede ser solo números.', life: 5000 });
+    return;
+  }
+
   isLoading.value = true;
   try {
     const formData = new FormData();
@@ -74,11 +81,11 @@ const saveProduct = async () => {
     if (imageFile.value) formData.append('Image', imageFile.value);
 
     await ProductService.updateProduct(productId.value, formData);
-    alert('Producto actualizado con éxito');
-    router.push('/storage');
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Producto actualizado con éxito', life: 3000 });
+    setTimeout(() => router.push('/storage'), 1000);
   } catch (err) {
     console.error('Error updating product:', err.response?.data);
-    alert('Error al actualizar: ' + (err.response?.data?.message || 'Error desconocido'));
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error desconocido', life: 5000 });
   } finally {
     isLoading.value = false;
   }
@@ -110,8 +117,8 @@ const isValidFormat = computed(() => {
           
           <div class="image-upload-wrapper" @click="triggerImageSelect">
             <input type="file" id="imageUpload" accept="image/*" @change="onImageChange" style="display: none;" />
-            <div class="image-preview" v-if="imagePreview || form.imageUrl">
-              <img :src="imagePreview || form.imageUrl" alt="Preview" class="preview-img" />
+            <div class="image-preview" v-if="imagePreview">
+              <img :src="imagePreview" alt="Preview" class="preview-img" />
             </div>
             <div class="placeholder-content" v-else>
               <svg viewBox="0 0 24 24" class="camera-icon"><path fill="currentColor" d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
@@ -121,29 +128,17 @@ const isValidFormat = computed(() => {
 
           <div class="field-group">
             <label class="field-label">Nombre del Producto</label>
-            <input type="text" v-model="form.name" class="styled-input" placeholder="Ej: Vino Tinto" required />
+            <input type="text" v-model="formState.name" class="styled-input" placeholder="Ej: Vino Tinto" required />
           </div>
 
           <div class="row-fields">
             <div class="field-group flex-1">
               <label class="field-label">Tipo de Producto</label>
-              <div class="select-wrapper">
-                <select v-model="form.productTypeId" class="styled-input" required>
-                  <option value="" disabled>Seleccione...</option>
-                  <option v-for="t in productTypes" :key="t._id" :value="t._id">{{ t.name }}</option>
-                </select>
-                <svg viewBox="0 0 24 24" class="select-icon"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
-              </div>
+              <input type="text" v-model="formState.type" class="styled-input" placeholder="Ej: Vino" required />
             </div>
             <div class="field-group flex-1">
               <label class="field-label">Marca</label>
-              <div class="select-wrapper">
-                <select v-model="form.brandId" class="styled-input" required>
-                  <option value="" disabled>Seleccione...</option>
-                  <option v-for="b in brands" :key="b._id" :value="b._id">{{ b.name }}</option>
-                </select>
-                <svg viewBox="0 0 24 24" class="select-icon"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
-              </div>
+              <input type="text" v-model="formState.brand" class="styled-input" placeholder="Ej: Tabernero" required />
             </div>
           </div>
 
@@ -151,7 +146,7 @@ const isValidFormat = computed(() => {
             <div class="field-group flex-1">
               <label class="field-label">Moneda</label>
               <div class="select-wrapper">
-                <select v-model="form.currencyCode" class="styled-input" required>
+                <select v-model="formState.code" class="styled-input" required>
                   <option value="" disabled>Seleccione...</option>
                   <option value="PEN">PEN</option>
                   <option value="USD">USD</option>
@@ -162,18 +157,18 @@ const isValidFormat = computed(() => {
             </div>
             <div class="field-group flex-1">
               <label class="field-label">Precio Unitario</label>
-              <input type="number" step="0.01" v-model="form.unitPrice" class="styled-input" placeholder="0.00" required />
+              <input type="number" step="0.01" min="0.01" v-model="formState.unitPrice" class="styled-input" placeholder="0.00" required />
             </div>
           </div>
 
           <div class="row-fields">
             <div class="field-group flex-1">
               <label class="field-label">Stock Mínimo</label>
-              <input type="number" v-model="form.minimumStock" class="styled-input" placeholder="10" required />
+              <input type="number" min="0" step="1" v-model="formState.minimumStock" class="styled-input" placeholder="10" required />
             </div>
             <div class="field-group flex-1">
               <label class="field-label">Contenido (Volumen)</label>
-              <input type="number" step="0.1" v-model="form.content" class="styled-input" placeholder="750.0" required />
+              <input type="number" min="0" step="1" v-model="formState.content" class="styled-input" placeholder="750" required />
             </div>
           </div>
 

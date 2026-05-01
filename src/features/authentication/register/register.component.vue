@@ -28,13 +28,18 @@ export default {
      * @public
      */
     async handleRegister() {
-      /**
-       * if
-       * @param {any} this.password !== this.confirmPassword
-       * @public
-       */
+      if (/\d/.test(this.fullName)) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre no puede contener números.', life: 5000 });
+        return;
+      }
+
+      if (this.password.length < 7) {
+        this.$toast.add({ severity: 'error', summary: 'Contraseña Débil', detail: 'La contraseña debe tener al menos 7 caracteres.', life: 5000 });
+        return;
+      }
+
       if (this.password !== this.confirmPassword) {
-        alert("Passwords do not match!");
+        this.$toast.add({ severity: 'error', summary: 'Error', detail: 'Las contraseñas no coinciden.', life: 5000 });
         return;
       }
       
@@ -51,13 +56,13 @@ export default {
 
       try {
         const response = await AuthService.signUp(signUpData);
-        alert("Registration successful! Please login.");
+        this.$toast.add({ severity: 'success', summary: 'Éxito', detail: 'Registration successful! Please login.', life: 3000 });
         this.$router.push("/");
       } catch (err) {
         console.error("Register error detail:", err.response?.data);
         const backendError = err.response?.data?.message || err.response?.data?.errors || "Registration failed.";
         this.error = typeof backendError === 'object' ? JSON.stringify(backendError) : backendError;
-        alert("Error del Servidor: " + this.error);
+        this.$toast.add({ severity: 'error', summary: 'Error del Servidor', detail: this.error, life: 5000 });
       } finally {
         this.loading = false;
       }
@@ -256,7 +261,7 @@ export default {
             <label class="checkbox-wrapper">
               <input type="checkbox" required />
               <span class="checkmark"></span>
-              I agree to the Terms & Privacy
+              Acepto los <a href="https://onedrive.live.com/" target="_blank" class="terms-link" @click.stop>Términos y Condiciones</a>
             </label>
           </div>
 

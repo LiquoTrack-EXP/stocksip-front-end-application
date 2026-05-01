@@ -6,10 +6,12 @@
  */
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useToast } from 'primevue/usetoast';
 import { WarehouseService } from '@/features/inventorymanagement/services/inventory.service';
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
 const warehouseId = computed(() => route.params.warehouseId);
 
@@ -28,6 +30,10 @@ const formState = ref({
 const imagePreview = ref(null);
 const imageFile = ref(null);
 const isLoading = ref(false);
+
+const paises = ["Perú", "Colombia", "Chile", "Argentina", "Ecuador", "México", "Bolivia", "Uruguay", "Paraguay", "Brasil"];
+const ciudades = ["Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco", "Iquitos", "Huancayo", "Tacna", "Pucallpa"];
+const distritos = ["Miraflores", "San Isidro", "Surco", "San Borja", "La Molina", "Barranco", "Magdalena", "Pueblo Libre", "San Miguel", "Lince"];
 
 onMounted(async () => {
   if (warehouseId.value) {
@@ -65,6 +71,20 @@ const triggerImageSelect = () => document.getElementById('warehouseImageUpload')
 const goBack = () => router.go(-1);
 
 const saveWarehouse = async () => {
+  if (/^\d+$/.test(formState.value.name)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre del almacén no puede ser solo números.', life: 5000 });
+    return;
+  }
+  if (/^\d+$/.test(formState.value.street)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La dirección no puede contener solo números.', life: 5000 });
+    return;
+  }
+
+  if (parseFloat(formState.value.minTemp) > parseFloat(formState.value.maxTemp)) {
+    toast.add({ severity: 'error', summary: 'Temperatura Errónea', detail: 'La temperatura mínima no puede ser mayor a la máxima.', life: 5000 });
+    return;
+  }
+
   isLoading.value = true;
   try {
     const formData = new FormData();
@@ -80,11 +100,11 @@ const saveWarehouse = async () => {
     if (imageFile.value) formData.append('Image', imageFile.value);
 
     await WarehouseService.updateWarehouse(warehouseId.value, formData);
-    alert('Almacén actualizado con éxito');
-    router.push('/warehouses');
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Almacén actualizado con éxito', life: 3000 });
+    setTimeout(() => router.push('/warehouses'), 1000);
   } catch (err) {
     console.error('Error updating warehouse:', err.response?.data);
-    alert('Error al actualizar: ' + (err.response?.data?.message || 'Error desconocido'));
+    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error desconocido', life: 5000 });
   } finally {
     isLoading.value = false;
   }
@@ -93,7 +113,7 @@ const saveWarehouse = async () => {
 const isValidFormat = computed(() => {
   return formState.value.name && formState.value.street && formState.value.city && 
          formState.value.district && formState.value.postalCode && formState.value.country &&
-         Number(formState.value.capacity) > 0 && 
+         Number(formState.value.capacity) >= 500 && 
          Number(formState.value.minTemp) < Number(formState.value.maxTemp);
 });
 </script>
@@ -135,7 +155,7 @@ const isValidFormat = computed(() => {
             </div>
             <div class="field-group flex-1 editable-shadow">
               <label class="field-label">Capacidad (uds)</label>
-              <input type="number" v-model="formState.capacity" placeholder="Ej: 500" />
+              <input type="number" min="500" v-model="formState.capacity" placeholder="Ej: 500" />
             </div>
           </div>
 
@@ -144,20 +164,29 @@ const isValidFormat = computed(() => {
               <label class="field-label">Calle</label>
               <input type="text" v-model="formState.street" placeholder="Ej: Av. Brasil 123" />
             </div>
-            <div class="field-group flex-1 editable-shadow">
+            <div class="field-group flex-1 editable-shadow select-arrow-wrap">
               <label class="field-label">Distrito</label>
-              <input type="text" v-model="formState.district" placeholder="Ej: Lince" />
+              <select v-model="formState.district" required>
+                <option value="" disabled>Seleccione un distrito</option>
+                <option v-for="distrito in distritos" :key="distrito" :value="distrito">{{ distrito }}</option>
+              </select>
             </div>
           </div>
 
           <div class="row-fields">
-            <div class="field-group flex-1 editable-shadow">
+            <div class="field-group flex-1 editable-shadow select-arrow-wrap">
               <label class="field-label">Ciudad</label>
-              <input type="text" v-model="formState.city" placeholder="Ej: Lima" />
+              <select v-model="formState.city" required>
+                <option value="" disabled>Seleccione una ciudad</option>
+                <option v-for="ciudad in ciudades" :key="ciudad" :value="ciudad">{{ ciudad }}</option>
+              </select>
             </div>
-            <div class="field-group flex-1 editable-shadow">
+            <div class="field-group flex-1 editable-shadow select-arrow-wrap">
               <label class="field-label">País</label>
-              <input type="text" v-model="formState.country" placeholder="Ej: Perú" />
+              <select v-model="formState.country" required>
+                <option value="" disabled>Seleccione un país</option>
+                <option v-for="pais in paises" :key="pais" :value="pais">{{ pais }}</option>
+              </select>
             </div>
             <div class="field-group flex-1 editable-shadow">
               <label class="field-label">Código Postal</label>
@@ -235,6 +264,12 @@ const isValidFormat = computed(() => {
 }
 .editable-shadow input:focus, .editable-shadow select:focus {
   outline: none; border-color: #4a1b2a; box-shadow: 0 0 0 3px rgba(74, 27, 42, 0.1);
+}
+
+.select-arrow-wrap { position: relative; }
+.select-arrow-wrap::after {
+  content: "▼"; position: absolute; right: 20px; top: 45px;
+  font-size: 10px; color: rgba(43, 0, 13, 0.5); pointer-events: none;
 }
 
 

@@ -4,21 +4,26 @@
  * @displayName AdminPanelEditComponent
  * @version 1.0.0
  */
+import { UserService } from "../services/user.service";
+import { ProfileService } from "@/features/profilemanagement/services/profile.service";
+
 export default {
   name: "AdminPanelEditComponent",
   data() {
     return {
       userId: null,
+      profileId: null,
       user: {
-        nombre: "Bruhh 14z",
+        nombre: "",
         apellido: "",
-        telefono: "+10000000000",
-        rol: "Admin",
+        telefono: "",
+        rol: "",
       },
     };
   },
-  created() {
+  async created() {
     this.userId = this.$route.params.id;
+    await this.fetchUserDetails();
   },
   methods: {
     /**
@@ -33,15 +38,121 @@ export default {
      * @public
      */
     triggerImageUpload() {
-      alert("Abriendo el selector de archivos del sistema operativo...");
+      this.$toast.add({
+        severity: "info",
+        summary: "Información",
+        detail: "Abriendo el selector de archivos del sistema operativo...",
+        life: 3000,
+      });
     },
-    /**
-     * saveProfile
-     * @public
-     */
-    saveProfile() {
-      alert("Cambios de perfil guardados en el servidor para el usuario #" + this.userId);
-      this.$router.go(-1);
+    async saveProfile() {
+      if (!this.user.nombre || !this.user.apellido || !this.user.telefono) {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error de Validación",
+          detail: "Todos los campos son obligatorios.",
+          life: 5000,
+        });
+        return;
+      }
+      if (/\d/.test(this.user.nombre) || /\d/.test(this.user.apellido)) {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error de Validación",
+          detail: "El nombre y apellido no pueden contener números.",
+          life: 5000,
+        });
+        return;
+      }
+      if (!/^\d+$/.test(this.user.telefono)) {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error de Validación",
+          detail: "El número de teléfono solo puede contener números.",
+          life: 5000,
+        });
+        return;
+      }
+
+      if (!this.profileId) {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "No se encontró el ID del perfil para actualizar.",
+          life: 5000,
+        });
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append("FirstName", this.user.nombre);
+        formData.append("LastName", this.user.apellido);
+        formData.append("PhoneNumber", this.user.telefono);
+        formData.append("AssignedRole", this.user.rol);
+
+        await ProfileService.updateProfile(this.profileId, formData);
+
+        this.$toast.add({
+          severity: "success",
+          summary: "Éxito",
+          detail: "Cambios de perfil guardados en el servidor",
+          life: 3000,
+        });
+        setTimeout(() => this.$router.go(-1), 1000);
+      } catch (err) {
+        const errorData = err.response?.data;
+        console.error("Error updating profile:", errorData);
+        let errorMsg = "Hubo un problema al actualizar el perfil.";
+        if (typeof errorData === "string") errorMsg = errorData;
+        else if (errorData && errorData.message) errorMsg = errorData.message;
+        else if (errorData && errorData.errors) errorMsg = JSON.stringify(errorData.errors);
+        else if (err.message) errorMsg = err.message;
+
+        this.$toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: errorMsg,
+          life: 5000,
+        });
+      }
+    },
+    async fetchUserDetails() {
+      try {
+        const accountId = localStorage.getItem("accountId");
+        if (!accountId) return;
+
+        const response = await UserService.getAccountUsers(accountId, "All");
+        const data = response.data;
+        const payload = Array.isArray(data) ? data[0] : data;
+        const usersArray = payload?.users || [];
+
+        const u = usersArray.find(
+          (user) =>
+            String(user.userId) === String(this.userId) ||
+            String(user.id) === String(this.userId) ||
+            String(user.profileId) === String(this.userId),
+        );
+
+        if (u) {
+          this.profileId = u.profileId || null;
+          const full = u.fullName || u.name || u.firstName || "";
+          const parts = full.split(" ");
+          const first = parts[0] || "";
+          const last = parts.slice(1).join(" ") || u.lastName || "";
+
+          this.user = {
+            nombre: first,
+            apellido: last,
+            telefono: u.phoneNumber || u.phone || u.telephone || "",
+            rol: u.profileRole || u.role || u.roles?.[0] || "Trabajador",
+          };
+        } else {
+          console.error("User not found in account users list");
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
     },
   },
 };
@@ -49,12 +160,9 @@ export default {
 
 <template>
   <div class="dialog-backdrop" @click.self="closeDialog">
-    
     <div class="modal-card wide-model">
-      
-      
       <div class="modal-header">
-        <h2 class="modal-title">{{ $t('profile.edit_profile') }}</h2>
+        <h2 class="modal-title">{{ $t("profile.edit_profile") }}</h2>
         <button class="close-btn" @click="closeDialog" title="Cancelar edición">
           <svg viewBox="0 0 24 24" class="close-icon">
             <path
@@ -66,9 +174,7 @@ export default {
       </div>
 
       <div class="modal-content-split">
-        
         <div class="profile-hero-pane">
-          
           <div class="avatar-ring">
             <div class="avatar-fill">
               <svg viewBox="0 0 24 24" class="person-silhouette">
@@ -80,13 +186,11 @@ export default {
             </div>
           </div>
 
-          
           <button class="pill-btn select-img-btn" @click="triggerImageUpload">
             Seleccionar imagen
           </button>
         </div>
 
-        
         <div class="form-pane">
           <h3 class="pane-title">Configuración de Cuenta</h3>
 
@@ -94,36 +198,48 @@ export default {
             <div class="field-item">
               <label class="mockup-label">Nombre</label>
               <div class="input-wrapper mockup-shadow editable">
-                <input type="text" v-model="user.nombre" placeholder="Ingresa el nombre" />
+                <input
+                  type="text"
+                  v-model="user.nombre"
+                  placeholder="Ingresa el nombre"
+                />
               </div>
             </div>
 
             <div class="field-item">
               <label class="mockup-label">Apellido</label>
               <div class="input-wrapper mockup-shadow editable">
-                <input type="text" v-model="user.apellido" placeholder="Ingresa tus apellidos" />
+                <input
+                  type="text"
+                  v-model="user.apellido"
+                  placeholder="Ingresa tus apellidos"
+                />
               </div>
             </div>
 
             <div class="field-item full-width">
               <label class="mockup-label">Número de teléfono</label>
               <div class="input-wrapper mockup-shadow editable">
-                <input type="tel" v-model="user.telefono" placeholder="+00000000000" />
+                <input
+                  type="tel"
+                  v-model="user.telefono"
+                  placeholder="+00000000000"
+                />
               </div>
             </div>
 
             <div class="field-item full-width">
               <label class="mockup-label">Rol asignado</label>
               <div class="input-wrapper mockup-shadow editable">
-                 
                 <input type="text" v-model="user.rol" />
               </div>
             </div>
           </div>
 
-          
           <div class="actions-footer">
-            <button class="pill-btn dark-mockup-btn" @click="saveProfile">{{ $t('common.save') }}</button>
+            <button class="pill-btn dark-mockup-btn" @click="saveProfile">
+              {{ $t("common.save") }}
+            </button>
           </div>
         </div>
       </div>
@@ -132,7 +248,6 @@ export default {
 </template>
 
 <style scoped>
-
 .dialog-backdrop {
   position: fixed;
   top: 0;
@@ -170,7 +285,6 @@ export default {
     transform: translateY(0) scale(1);
   }
 }
-
 
 .modal-card {
   background: #f4ecec;
@@ -228,7 +342,6 @@ export default {
   min-height: 440px;
 }
 
-
 .profile-hero-pane {
   flex: 0 0 340px;
   background: linear-gradient(
@@ -253,7 +366,7 @@ export default {
   align-items: center;
   justify-content: center;
   padding: 6px;
-  margin-bottom: 24px; 
+  margin-bottom: 24px;
 }
 
 .avatar-fill {
@@ -274,7 +387,6 @@ export default {
   margin-top: 25px;
 }
 
-
 .pill-btn.select-img-btn {
   background: #391421;
   color: #ffffff;
@@ -285,14 +397,15 @@ export default {
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 16px rgba(57, 20, 33, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .pill-btn.select-img-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px rgba(57, 20, 33, 0.3);
 }
-
 
 .form-pane {
   flex: 1;
@@ -330,36 +443,35 @@ export default {
   margin-left: 2px;
 }
 
-
 .mockup-shadow.editable input {
   width: 100%;
   padding: 16px 20px;
   border-radius: 12px;
-  
-  border: 1px solid #dadbdc; 
+
+  border: 1px solid #dadbdc;
   font-size: 15px;
   font-family: inherit;
   color: #3b1923;
   font-weight: 600;
-  
+
   background: #ffffff;
   box-shadow: 0 4px 12px rgba(43, 0, 13, 0.02);
   box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .mockup-shadow.editable input:focus {
   outline: none;
-  border-color: #3b1923; 
+  border-color: #3b1923;
   box-shadow: 0 4px 16px rgba(59, 25, 35, 0.1);
 }
-
 
 .mockup-shadow.editable input::placeholder {
   color: #c9cccc;
   font-weight: 500;
 }
-
 
 .actions-footer {
   margin-top: auto;

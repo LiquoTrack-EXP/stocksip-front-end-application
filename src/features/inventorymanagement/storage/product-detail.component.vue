@@ -6,7 +6,7 @@
  */
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ProductService } from '@/features/inventorymanagement/services/inventory.service';
+import { ProductService, WarehouseService } from '@/features/inventorymanagement/services/inventory.service';
 
 const router = useRouter();
 const route = useRoute();
@@ -41,9 +41,48 @@ onMounted(async () => {
       unitPrice: data.unitPrice || 0,
       currencyCode: data.code || 'USD',
       minimumStock: data.minimumStock || 0,
-      totalStockInWarehouse: data.totalStockInWarehouse || 0,
+      totalStockInWarehouse: data.totalStockInStore || data.totalStockInWarehouse || 0,
       content: data.content || 0
     };
+
+    // If totalStockInWarehouse is still 0, we can attempt to fetch it from warehouses
+    if (product.value.totalStockInWarehouse === 0) {
+      const accountId = localStorage.getItem('accountId');
+      if (accountId) {
+        try {
+          const warehousesRes = await WarehouseService.getAccountWarehouses(accountId);
+          const warehouses = warehousesRes.data.warehouses || [];
+          
+          let totalStock = 0;
+          for (const warehouse of warehouses) {
+            try {
+              const warehouseProductsRes = await WarehouseService.getWarehouseProducts(warehouse.warehouseId);
+              let warehouseProducts = [];
+              if (Array.isArray(warehouseProductsRes.data)) {
+                warehouseProducts = warehouseProductsRes.data;
+              } else if (warehouseProductsRes.data && Array.isArray(warehouseProductsRes.data.products)) {
+                warehouseProducts = warehouseProductsRes.data.products;
+              } else if (warehouseProductsRes.data && Array.isArray(warehouseProductsRes.data.items)) {
+                warehouseProducts = warehouseProductsRes.data.items;
+              }
+              
+              const productInWarehouse = warehouseProducts.find(wp => 
+                (wp.productId === productId || wp.id === productId)
+              );
+              if (productInWarehouse) {
+                totalStock += (productInWarehouse.availableStock || productInWarehouse.stock || productInWarehouse.quantity || 0);
+              }
+            } catch (err) {
+              console.error(`Error fetching products for warehouse ${warehouse.warehouseId}:`, err);
+            }
+          }
+          
+          product.value.totalStockInWarehouse = totalStock;
+        } catch (err) {
+          console.error('Error fetching warehouses:', err);
+        }
+      }
+    }
   } catch (err) {
     console.error('Error fetching product details:', err);
   }
