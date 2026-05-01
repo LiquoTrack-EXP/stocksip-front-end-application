@@ -18,9 +18,9 @@ export default defineConfig({
   server: {
     proxy: {
       // Vite dev proxy → Spring Boot / ASP.NET Core backend
-      // Backend URL confirmed from Swagger: https://localhost:7164
+      // Backend URL confirmed from Swagger: https://stocksip-back-end.azurewebsites.net
       '/api': {
-        target: 'https://localhost:7164',
+        target: 'https://stocksip-back-end.azurewebsites.net',
         changeOrigin: true,
         secure: false,   // allow self-signed cert in dev
       }
