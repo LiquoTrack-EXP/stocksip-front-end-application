@@ -4,6 +4,8 @@
  * @displayName AdminPanelViewComponent
  * @version 1.0.0
  */
+import { UserService } from '../services/user.service';
+
 export default {
   name: "AdminPanelViewComponent",
   data() {
@@ -11,16 +13,16 @@ export default {
       userId: null,
 
       user: {
-        nombre: "Bruhh 14z",
-        apellido: "Not set",
-        telefono: "+10000000000",
-        rol: "Admin",
+        nombre: "",
+        apellido: "",
+        telefono: "",
+        rol: "",
       },
     };
   },
-  created() {
-
+  async created() {
     this.userId = this.$route.params.id;
+    await this.fetchUserDetails();
   },
   methods: {
     /**
@@ -37,6 +39,37 @@ export default {
      */
     editProfile() {
       this.$router.push('/admin-panel/edit/' + this.userId);
+    },
+    async fetchUserDetails() {
+      try {
+        const accountId = localStorage.getItem('accountId');
+        if (!accountId) return;
+
+        const response = await UserService.getAccountUsers(accountId, "All");
+        const data = response.data;
+        const payload = Array.isArray(data) ? data[0] : data;
+        const usersArray = payload?.users || [];
+        
+        const u = usersArray.find(user => String(user.userId) === String(this.userId) || String(user.id) === String(this.userId) || String(user.profileId) === String(this.userId));
+
+        if (u) {
+          const full = u.fullName || u.name || u.firstName || "";
+          const parts = full.split(' ');
+          const first = parts[0] || "Not set";
+          const last = parts.slice(1).join(' ') || u.lastName || "Not set";
+
+          this.user = {
+            nombre: first,
+            apellido: last,
+            telefono: u.phoneNumber || u.phone || u.telephone || "Not set",
+            rol: u.profileRole || u.role || u.roles?.[0] || "Trabajador",
+          };
+        } else {
+          console.error("User not found in account users list");
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
     },
   },
 };

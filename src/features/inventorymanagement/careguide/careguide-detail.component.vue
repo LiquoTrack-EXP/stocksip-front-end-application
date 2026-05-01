@@ -59,25 +59,6 @@ onMounted(async () => {
 
 const goBack = () => router.go(-1);
 
-const saveGuide = async () => {
-  isLoading.value = true;
-  try {
-    await CareGuideService.updateCareGuide(careGuideId.value, {
-      title: formState.value.title,
-      summary: formState.value.summary,
-      minTemp: Number(formState.value.minTemp),
-      maxTemp: Number(formState.value.maxTemp),
-      productType: formState.value.productType
-    });
-    alert('Guía actualizada con éxito');
-    router.go(-1);
-  } catch (err) {
-    console.error('Error updating guide:', err.response?.data);
-    alert('Error: ' + (err.response?.data?.message || 'No se pudo actualizar'));
-  } finally {
-    isLoading.value = false;
-  }
-};
 
 const confirmDelete = async () => {
   isLoading.value = true;
@@ -85,7 +66,7 @@ const confirmDelete = async () => {
     await CareGuideService.deleteCareGuide(careGuideId.value);
     alert('Guía eliminada con éxito');
     showDeleteDialog.value = false;
-    router.push('/careguides');
+    router.push('/care-guides');
   } catch (err) {
     console.error('Error deleting guide:', err);
     alert('No se pudo eliminar la guía');
@@ -93,21 +74,23 @@ const confirmDelete = async () => {
     isLoading.value = false;
   }
 };
+
+const goToEdit = () => {
+  router.push(`/care-guides/edit/${careGuideId.value}`);
+};
 </script>
 
 <template>
   <div class="web-layout edit-guide-layout">
     
-    
     <div class="form-card glass-panel">
-      
       
       <header class="card-header">
         <button class="icon-btn" @click="goBack" title="Volver">
           <svg viewBox="0 0 24 24" class="header-icon"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         </button>
         
-        <h2 class="header-title">{{ formState.productName || 'Care Guide' }}</h2>
+        <h2 class="header-title">{{ formState.productName || 'Care Guide Details' }}</h2>
         
         <button class="icon-btn" @click="showDeleteDialog = true" title="Eliminar guía">
           <svg viewBox="0 0 24 24" class="header-icon delete-icon"><path fill="currentColor" d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
@@ -116,7 +99,6 @@ const confirmDelete = async () => {
 
       <div class="card-body">
         
-        
         <div class="illustration-box">
           <img v-if="formState.imageUrl" :src="formState.imageUrl" alt="Guide Image" class="guide-image" />
           <div v-else class="placeholder-img">
@@ -124,70 +106,48 @@ const confirmDelete = async () => {
           </div>
         </div>
 
-        
-        <div class="form-fields">
-          
+        <div class="form-fields read-only-fields">
           <div class="field-item">
             <label class="field-label">Título</label>
-            <div class="input-wrapper editable-shadow">
-              <input type="text" v-model="formState.title" placeholder="Título de la guía" />
-            </div>
+            <div class="read-only-text">{{ formState.title || 'N/A' }}</div>
           </div>
 
           <div class="field-item">
             <label class="field-label">Nombre del Producto</label>
-            <div class="input-wrapper editable-shadow">
-              <input type="text" v-model="formState.productName" placeholder="Ej: Vino Tinto Reserva" />
-            </div>
+            <div class="read-only-text">{{ formState.productName || 'N/A' }}</div>
           </div>
 
           <div class="field-item">
             <label class="field-label">Comentarios / Resumen</label>
-            <div class="input-wrapper editable-shadow">
-              <textarea v-model="formState.summary" rows="3" placeholder="Detalles de conservación..."></textarea>
-            </div>
+            <div class="read-only-text">{{ formState.summary || 'N/A' }}</div>
           </div>
 
           <div class="field-item">
             <label class="field-label">Tipo de Licor</label>
-            <div class="input-wrapper editable-shadow select-wrapper">
-              <select v-model="formState.productType" required>
-                <option disabled value="">Seleccionar tipo...</option>
-                <option v-for="t in productTypes" :key="t.name || t" :value="t.name || t">{{ t.name || t }}</option>
-              </select>
-              <svg viewBox="0 0 24 24" class="chevron-icon"><path fill="currentColor" d="M7 10l5 5 5-5H7z"/></svg>
-            </div>
+            <div class="read-only-text">{{ formState.productType || 'N/A' }}</div>
           </div>
 
-          
           <div class="grid-form">
             <div class="field-item">
               <label class="field-label">Temp. Mínima</label>
-              <div class="input-wrapper editable-shadow">
-                <input type="number" v-model="formState.minTemp" placeholder="Ej: 12" />
-              </div>
+              <div class="read-only-text">{{ formState.minTemp }}°C</div>
             </div>
             
             <div class="field-item">
               <label class="field-label">Temp. Máxima</label>
-              <div class="input-wrapper editable-shadow">
-                <input type="number" v-model="formState.maxTemp" placeholder="Ej: 18" />
-              </div>
+              <div class="read-only-text">{{ formState.maxTemp }}°C</div>
             </div>
           </div>
-
         </div>
 
       </div>
 
-      
       <div class="card-footer">
-        <button class="pill-btn save-btn" @click="saveGuide">{{ $t('common.save_changes') }}</button>
+        <button class="pill-btn edit-btn" @click="goToEdit">Editar Guía</button>
       </div>
 
     </div>
 
-    
     <div v-if="showDeleteDialog" class="dialog-backdrop" @click.self="showDeleteDialog = false">
       <div class="delete-dialog glass-panel">
         <h3 class="dialog-title">¿Eliminar esta guía?</h3>
@@ -405,19 +365,31 @@ const confirmDelete = async () => {
   border: none;
 }
 
-.save-btn {
+.read-only-text {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: #fdfaf9;
+  border: 1px solid #e6dfdd;
+  font-size: 15px;
+  color: #4a1b2a;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.edit-btn {
   background: #4a1b2a;
   color: #ffffff;
   width: 60%;
   box-shadow: 0 8px 16px rgba(74, 27, 42, 0.2);
 }
 
-.save-btn:hover {
+.edit-btn:hover {
   background: #2b000d;
   transform: translateY(-2px);
   box-shadow: 0 12px 24px rgba(74, 27, 42, 0.3);
 }
-
 
 .dialog-backdrop {
   position: fixed;

@@ -21,10 +21,12 @@ const loadCatalogs = async () => {
     const accountId = localStorage.getItem('accountId');
     if (!accountId) { isLoading.value = false; return; }
     const response = await CatalogService.getAllCatalogsByAccount(accountId);
-    catalogs.value = (response.data || []).map((c) => ({
-      ...c,
-      productCount: Array.isArray(c.catalogItems) ? c.catalogItems.length : 0,
-    }));
+    catalogs.value = (response.data || [])
+      .filter(c => c.isPublished)
+      .map((c) => ({
+        ...c,
+        productCount: Array.isArray(c.catalogItems) ? c.catalogItems.length : 0,
+      }));
   } catch (err) {
     console.error('Error loading catalogs:', err);
     error.value = 'No se pudieron cargar los catálogos.';

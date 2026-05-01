@@ -1,5 +1,5 @@
 <script>
-import { CareGuideService } from '../services/inventory.service';
+import { CareGuideService } from "../services/inventory.service";
 
 /**
  * CareGuideComponent component.
@@ -15,6 +15,8 @@ export default {
       filterOption: "Most Recent",
       filters: ["Most Recent", "Alphabetical", "By Category"],
       guides: [],
+      showDeleteDialog: false,
+      guideToDelete: null,
     };
   },
   async mounted() {
@@ -24,8 +26,12 @@ export default {
     filteredGuides() {
       return this.guides.filter(
         (g) =>
-          (g.title || g.productName || '').toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          (g.category || g.type || '').toLowerCase().includes(this.searchQuery.toLowerCase()),
+          (g.title || g.productName || "")
+            .toLowerCase()
+            .includes(this.searchQuery.toLowerCase()) ||
+          (g.category || g.type || "")
+            .toLowerCase()
+            .includes(this.searchQuery.toLowerCase()),
       );
     },
   },
@@ -37,30 +43,31 @@ export default {
     async fetchGuides() {
       this.isLoading = true;
       try {
-        const accountId = localStorage.getItem('accountId');
+        const accountId = localStorage.getItem("accountId");
         if (!accountId) return;
         const response = await CareGuideService.getAccountCareGuides(accountId);
 
         const raw = response.data || [];
         this.guides = raw.map((g) => ({
           ...g,
-          id:       g.careGuideId ?? g.id,
-          title:    g.title,
-          category: g.typeOfLiquor ?? g.productName ?? '',
-          temp:     (g.recommendedMinTemperature != null && g.recommendedMaxTemperature != null)
-                      ? `${g.recommendedMinTemperature}° - ${g.recommendedMaxTemperature}°C`
-                      : '',
-          image:    g.imageUrl ?? g.image ?? '',
+          id: g.careGuideId ?? g.id,
+          title: g.title,
+          category: g.typeOfLiquor ?? g.productName ?? "",
+          temp:
+            g.recommendedMinTemperature != null &&
+            g.recommendedMaxTemperature != null
+              ? `${g.recommendedMinTemperature}° - ${g.recommendedMaxTemperature}°C`
+              : "",
+          image: g.imageUrl ?? g.image ?? "",
         }));
       } catch (err) {
-
         /**
          * if
          * @param {any} err?.response?.status !== 404
          * @public
          */
         if (err?.response?.status !== 404) {
-          console.error('Error fetching care guides:', err);
+          console.error("Error fetching care guides:", err);
         }
         this.guides = [];
       } finally {
@@ -71,7 +78,30 @@ export default {
       this.$router.push("/care-guides/create");
     },
     seeGuide(id) {
+      this.$router.push(`/care-guides/detail/${id}`);
+    },
+    editGuide(id) {
       this.$router.push(`/care-guides/edit/${id}`);
+    },
+    deleteGuide(id) {
+      this.guideToDelete = id;
+      this.showDeleteDialog = true;
+    },
+    async confirmDelete() {
+      if (!this.guideToDelete) return;
+      this.isLoading = true;
+      try {
+        await CareGuideService.deleteCareGuide(this.guideToDelete);
+        alert("Guía eliminada con éxito");
+        this.showDeleteDialog = false;
+        this.guideToDelete = null;
+        await this.fetchGuides();
+      } catch (err) {
+        console.error("Error deleting guide:", err);
+        alert("No se pudo eliminar la guía");
+      } finally {
+        this.isLoading = false;
+      }
     },
   },
 };
@@ -196,9 +226,53 @@ export default {
             <h3 class="g-title">{{ guide.title }}</h3>
             <p class="g-subtitle">{{ guide.category }} · {{ guide.temp }}</p>
           </div>
+          <div class="card-actions">
+            <button
+              class="action-icon-btn edit-btn"
+              @click="editGuide(guide.id)"
+              title="Editar"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                />
+              </svg>
+            </button>
+            <button
+              class="action-icon-btn delete-btn"
+              @click="deleteGuide(guide.id)"
+              title="Eliminar"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-          <button class="see-guide-btn" @click="seeGuide(guide.id)">
-            See Guide
+    <!-- Delete Dialog -->
+    <div
+      v-if="showDeleteDialog"
+      class="dialog-backdrop"
+      @click.self="showDeleteDialog = false"
+    >
+      <div class="delete-dialog glass-panel">
+        <h3 class="dialog-title">¿Eliminar esta guía?</h3>
+        <p class="dialog-msg">
+          Esta acción es permanente y no se podrá deshacer.
+        </p>
+        <div class="dialog-actions">
+          <button class="pill-btn confirm-delete-btn" @click="confirmDelete">
+            Eliminar
+          </button>
+          <button class="pill-btn cancel-btn" @click="showDeleteDialog = false">
+            Cancelar
           </button>
         </div>
       </div>
@@ -463,22 +537,108 @@ export default {
   white-space: nowrap;
 }
 
-.see-guide-btn {
-  background: transparent;
-  border: none;
-  color: #682238;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 8px 12px;
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-left: 10px;
-  transition: all 0.2s;
-  border-radius: 8px;
 }
 
-.see-guide-btn:hover {
+.action-icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.action-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.action-icon-btn:hover {
   background: rgba(43, 0, 13, 0.04);
-  color: var(--top-bg);
+}
+
+.view-btn:hover {
+  color: #2196f3;
+}
+.edit-btn:hover {
+  color: #4caf50;
+}
+.delete-btn:hover {
+  color: #f44336;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(43, 0, 13, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-dialog {
+  width: 90%;
+  max-width: 380px;
+  padding: 32px 28px;
+  border-radius: 28px;
+  text-align: center;
+  background: #ffffff;
+}
+
+.dialog-title {
+  color: #4a1b2a;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.dialog-msg {
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 24px;
+  font-size: 15px;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pill-btn {
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.confirm-delete-btn {
+  background: #4a1b2a;
+  color: #ffffff;
+}
+
+.cancel-btn {
+  background: #e6e0dc;
+  color: #4a1b2a;
+}
+.cancel-btn:hover {
+  background: #d8cece;
 }
 
 .empty-state {
@@ -502,7 +662,6 @@ export default {
 .empty-subtitle {
   color: var(--text-secondary);
 }
-
 
 @media (max-width: 768px) {
   .warehouse-container {

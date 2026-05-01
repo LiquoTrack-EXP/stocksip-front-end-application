@@ -19,10 +19,13 @@ export default {
         distrito: "",
         codigoPostal: "",
         pais: "",
-        capacidad: "",
+        capacidad: 500,
         tempMin: "",
         tempMax: "",
       },
+      paises: ["Perú", "Colombia", "Chile", "Argentina", "Ecuador", "México", "Bolivia", "Uruguay", "Paraguay", "Brasil"],
+      ciudades: ["Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco", "Iquitos", "Huancayo", "Tacna", "Pucallpa"],
+      distritos: ["Miraflores", "San Isidro", "Surco", "San Borja", "La Molina", "Barranco", "Magdalena", "Pueblo Libre", "San Miguel", "Lince"],
     };
   },
   methods: {
@@ -46,15 +49,30 @@ export default {
      * @public
      */
     async saveWarehouse() {
+      if (/^\d+$/.test(this.form.nombre)) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre del almacén no puede ser solo números.', life: 5000 });
+        return;
+      }
+      if (/^\d+$/.test(this.form.calle)) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La dirección no puede contener solo números.', life: 5000 });
+        return;
+      }
+      if (parseFloat(this.form.tempMin) > parseFloat(this.form.tempMax)) {
+        this.$toast.add({ severity: 'error', summary: 'Temperatura Errónea', detail: 'La temperatura mínima no puede ser mayor a la máxima.', life: 5000 });
+        return;
+      }
+      if (this.form.capacidad < 500) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La capacidad mínima de un almacén es 500.', life: 5000 });
+        return;
+      }
+
       this.isLoading = true;
       try {
         const accountId = localStorage.getItem('accountId');
-        /**
-         * if
-         * @param {any} !accountId
-         * @public
-         */
-        if (!accountId) { alert('No se encontró accountId'); return; }
+        if (!accountId) { 
+          this.$toast.add({ severity: 'error', summary: 'Error', detail: 'No se encontró accountId', life: 5000 }); 
+          return; 
+        }
 
         const formData = new FormData();
         formData.append('Name', this.form.nombre);
@@ -63,17 +81,26 @@ export default {
         formData.append('AddressDistrict', this.form.distrito);
         formData.append('AddressPostalCode', this.form.codigoPostal);
         formData.append('AddressCountry', this.form.pais);
-        formData.append('Capacity', this.form.capacidad);
-        formData.append('TemperatureMin', this.form.tempMin);
-        formData.append('TemperatureMax', this.form.tempMax);
+        formData.append('Capacity', this.form.capacidad || 0);
+        formData.append('TemperatureMin', this.form.tempMin || 0);
+        formData.append('TemperatureMax', this.form.tempMax || 0);
         if (this.imageFile) formData.append('Image', this.imageFile);
 
         await WarehouseService.registerWarehouse(accountId, formData);
-        alert("Almacén creado con éxito");
+        this.$toast.add({ severity: 'success', summary: 'Éxito', detail: 'Almacén creado con éxito', life: 3000 });
         this.$router.push("/warehouses");
       } catch (err) {
-        console.error('Error creating warehouse:', err.response?.data);
-        alert('Error al crear almacén: ' + (err.response?.data?.message || 'Error desconocido'));
+        const errorData = err.response?.data;
+        console.error('Error creating warehouse:', errorData);
+        let errorMsg = 'No se pudo crear el almacén. Verifica los datos.';
+        if (typeof errorData === 'string') {
+          errorMsg = errorData;
+        } else if (errorData && errorData.message) {
+          errorMsg = errorData.message;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+        this.$toast.add({ severity: 'error', summary: 'Error', detail: errorMsg, life: 5000 });
       } finally {
         this.isLoading = false;
       }
@@ -138,7 +165,7 @@ export default {
               <div class="field-group">
                 <label>Capacidad (unidades) *</label>
                 <div class="input-wrap mockup-shadow">
-                  <input type="number" v-model="form.capacidad" placeholder="Ej: 5000" required />
+                  <input type="number" v-model="form.capacidad" placeholder="Ej: 5000" min="500" required />
                 </div>
               </div>
               <div class="field-group">
@@ -165,20 +192,29 @@ export default {
               </div>
               <div class="field-group">
                 <label>Distrito *</label>
-                <div class="input-wrap mockup-shadow">
-                  <input type="text" v-model="form.distrito" placeholder="Ej: San Isidro" required />
+                <div class="input-wrap mockup-shadow select-arrow">
+                  <select v-model="form.distrito" required>
+                    <option value="" disabled>Seleccione un distrito</option>
+                    <option v-for="distrito in distritos" :key="distrito" :value="distrito">{{ distrito }}</option>
+                  </select>
                 </div>
               </div>
               <div class="field-group">
                 <label>Ciudad *</label>
-                <div class="input-wrap mockup-shadow">
-                  <input type="text" v-model="form.ciudad" placeholder="Ej: Lima" required />
+                <div class="input-wrap mockup-shadow select-arrow">
+                  <select v-model="form.ciudad" required>
+                    <option value="" disabled>Seleccione una ciudad</option>
+                    <option v-for="ciudad in ciudades" :key="ciudad" :value="ciudad">{{ ciudad }}</option>
+                  </select>
                 </div>
               </div>
               <div class="field-group">
                 <label>País *</label>
-                <div class="input-wrap mockup-shadow">
-                  <input type="text" v-model="form.pais" placeholder="Ej: Perú" required />
+                <div class="input-wrap mockup-shadow select-arrow">
+                  <select v-model="form.pais" required>
+                    <option value="" disabled>Seleccione un país</option>
+                    <option v-for="pais in paises" :key="pais" :value="pais">{{ pais }}</option>
+                  </select>
                 </div>
               </div>
               <div class="field-group">
@@ -426,7 +462,8 @@ export default {
 }
 
 
-.mockup-shadow input {
+.mockup-shadow input,
+.mockup-shadow select {
   width: 100%;
   padding: 16px 20px;
   border-radius: 8px; 
@@ -435,16 +472,32 @@ export default {
   font-family: inherit;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(43, 0, 13, 0.04); 
+  appearance: none;
 }
 
+.select-arrow {
+  position: relative;
+}
+.select-arrow::after {
+  content: "▼";
+  font-size: 10px;
+  color: rgba(43, 0, 13, 0.5);
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
 
-.input-wrap input {
+.input-wrap input,
+.input-wrap select {
   background: var(--white);
   color: var(--text-primary);
   font-weight: 600;
 }
 
-.input-wrap input:focus {
+.input-wrap input:focus,
+.input-wrap select:focus {
   outline: none;
   border-color: rgba(74, 27, 42, 0.3);
   box-shadow: 0 4px 16px rgba(74, 27, 42, 0.08); 

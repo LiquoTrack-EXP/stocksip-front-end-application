@@ -85,10 +85,18 @@ export default {
       this.imageFile = e.target.files[0] || null;
     },
     async addProduct() {
+      if (/^\d+$/.test(this.form.name)) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre del producto no puede ser solo números.', life: 5000 });
+        return;
+      }
+
       this.isLoading = true;
       try {
         const accountId = localStorage.getItem('accountId');
-        if (!accountId) { alert('No se encontró accountId'); return; }
+        if (!accountId) { 
+          this.$toast.add({ severity: 'error', summary: 'Error', detail: 'No se encontró accountId', life: 5000 }); 
+          return; 
+        }
 
         const formData = new FormData();
         formData.append('Name', this.form.name);
@@ -102,7 +110,7 @@ export default {
         if (this.imageFile) formData.append('Image', this.imageFile);
 
         await ProductService.registerProduct(accountId, formData);
-        alert("Producto registrado con éxito");
+        this.$toast.add({ severity: 'success', summary: 'Éxito', detail: 'Producto registrado con éxito', life: 3000 });
         this.$router.push('/storage');
       } catch (err) {
         const status = err.response?.status;
@@ -118,7 +126,7 @@ export default {
         } else {
           msg = body?.message || body?.title || body?.error || JSON.stringify(body) || 'Error desconocido';
         }
-        alert(`Error al crear producto: ${msg}`);
+        this.$toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 5000 });
       } finally {
         this.isLoading = false;
       }
@@ -203,7 +211,7 @@ export default {
               <div class="field-group">
                 <label class="external-label">{{ $t('products.unit_price') }}</label>
                 <div class="input-wrap mockup-shadow">
-                  <input type="number" step="0.01" v-model="form.unitPrice" placeholder="18" required />
+                  <input type="number" step="0.01" min="0.01" v-model="form.unitPrice" placeholder="18" required />
                 </div>
               </div>
 
@@ -223,14 +231,14 @@ export default {
               <div class="field-group">
                 <label class="external-label">{{ $t('products.min_stock') }}</label>
                 <div class="input-wrap mockup-shadow">
-                  <input type="number" v-model="form.minStock" placeholder="e.g., 10" required />
+                  <input type="number" min="0" step="1" v-model="form.minStock" placeholder="e.g., 10" required />
                 </div>
               </div>
 
               <div class="field-group">
                 <label class="external-label">{{ $t('products.quantity') }}</label>
                 <div class="input-wrap mockup-shadow">
-                  <input type="number" step="0.1" v-model="form.contentCapacity" placeholder="e.g., 750.0" required />
+                  <input type="number" min="0" step="1" v-model="form.contentCapacity" placeholder="e.g., 750" required />
                 </div>
               </div>
 

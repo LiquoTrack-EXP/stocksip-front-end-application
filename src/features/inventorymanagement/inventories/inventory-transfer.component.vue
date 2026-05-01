@@ -23,6 +23,7 @@ const formState = ref({
 
 const isLoading = ref(false);
 const warehouses = ref([]);
+const products = ref([]);
 const currentMaxStock = ref(0);
 
 onMounted(async () => {
@@ -30,19 +31,38 @@ onMounted(async () => {
     const accountId = localStorage.getItem('accountId');
     if (accountId) {
       const res = await WarehouseService.getAccountWarehouses(accountId);
-      warehouses.value = (res.data.warehouses || []).filter(w => w.warehouseId !== warehouseId);
+      warehouses.value = (res.data.warehouses || res.data || []).filter(w => (w.warehouseId || w.id) !== warehouseId);
     }
   } catch (err) {
     console.error('Error loading warehouses:', err);
+  }
+
+  if (warehouseId) {
+    try {
+      const res = await WarehouseService.getWarehouseProducts(warehouseId);
+      let data = res.data;
+      if (!Array.isArray(data)) {
+        if (data.products && Array.isArray(data.products)) data = data.products;
+        else if (data.items && Array.isArray(data.items)) data = data.items;
+        else data = [];
+      }
+      products.value = data.map(item => ({
+        id: item.productId || item.id,
+        name: item.productName || item.name || 'Producto sin nombre',
+        stock: item.availableStock || item.stock || item.quantity || 0
+      }));
+    } catch (err) {
+      console.error('Error loading warehouse products:', err);
+    }
   }
 });
 
 const goBack = () => router.go(-1);
 
 const onProductSelected = () => {
-  // Update max stock based on selected product
-  if (formState.value.productId === 'p1') {
-    currentMaxStock.value = 120;
+  const selectedProduct = products.value.find(p => p.id === formState.value.productId);
+  if (selectedProduct) {
+    currentMaxStock.value = selectedProduct.stock;
   } else {
     currentMaxStock.value = 0;
   }
@@ -90,7 +110,9 @@ const executeTransfer = async () => {
             <div class="input-wrapper editable-shadow">
               <select v-model="formState.productId" @change="onProductSelected">
                 <option value="" disabled>Seleccione el producto a transferir...</option>
-                <option value="p1">Vino Tinto Reserva 2018 (120 disponibles)</option>
+                <option v-for="p in products" :key="p.id" :value="p.id">
+                  {{ p.name }} ({{ p.stock }} disponibles)
+                </option>
               </select>
             </div>
           </div>
@@ -101,8 +123,9 @@ const executeTransfer = async () => {
             <div class="input-wrapper editable-shadow">
               <select v-model="formState.targetWarehouseId">
                 <option value="" disabled>Seleccione almacén destino...</option>
-                <option value="w2">Almacén Central Norte</option>
-                <option value="w3">Sucursal Plaza Mayor</option>
+                <option v-for="w in warehouses" :key="w.warehouseId || w.id" :value="w.warehouseId || w.id">
+                  {{ w.name }}
+                </option>
               </select>
             </div>
           </div>

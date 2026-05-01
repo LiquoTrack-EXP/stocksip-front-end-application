@@ -4,20 +4,25 @@
  * @displayName inventory-addition.component
  * @version 1.0.0
  */
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { InventoryService, ProductService } from '@/features/inventorymanagement/services/inventory.service';
+import { ref, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useToast } from "primevue/usetoast";
+import {
+  InventoryService,
+  ProductService,
+} from "@/features/inventorymanagement/services/inventory.service";
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
-const warehouseId = route.params.warehouseId || '';
-const productId = route.params.productId || '';
+const warehouseId = route.params.warehouseId || "";
+const productId = route.params.productId || "";
 
 const formState = ref({
-  productId: '',
-  quantity: '',
-  expirationDate: ''
+  productId: "",
+  quantity: "",
+  expirationDate: "",
 });
 
 const isLoading = ref(false);
@@ -27,18 +32,16 @@ const productsLoading = ref(false);
 const loadProducts = async () => {
   productsLoading.value = true;
   try {
-    const accountId = localStorage.getItem('accountId');
+    const accountId = localStorage.getItem("accountId");
     if (!accountId) {
       products.value = [];
       return;
     }
-    
-    console.log('Loading products for account:', accountId);
+
+    console.log("Loading products for account:", accountId);
     const response = await ProductService.getAccountProducts(accountId);
-    console.log('Account products response:', response);
-    console.log('Response data:', response.data);
-    
-    // Usar la misma lógica que el storage component
+    console.log("Account products response:", response);
+    console.log("Response data:", response.data);
     let productsData = [];
     if (Array.isArray(response.data)) {
       productsData = response.data;
@@ -49,11 +52,11 @@ const loadProducts = async () => {
     } else {
       productsData = [];
     }
-    
-    console.log('Processed products data:', productsData);
+
+    console.log("Processed products data:", productsData);
     products.value = productsData;
   } catch (err) {
-    console.error('Error loading products:', err);
+    console.error("Error loading products:", err);
     products.value = [];
   } finally {
     productsLoading.value = false;
@@ -67,17 +70,42 @@ onMounted(() => {
 const goBack = () => router.go(-1);
 
 const saveAddition = async () => {
+  if (formState.value.expirationDate) {
+    const selectedDate = new Date(formState.value.expirationDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      toast.add({
+        severity: "error",
+        summary: "Fecha Inválida",
+        detail: "La fecha de expiración no puede estar en el pasado.",
+        life: 5000,
+      });
+      return;
+    }
+  }
+
   isLoading.value = true;
   try {
     await InventoryService.addProducts(warehouseId, formState.value.productId, {
       quantityToAdd: Number(formState.value.quantity),
-      expirationDate: formState.value.expirationDate || null
+      expirationDate: formState.value.expirationDate || null,
     });
-    alert('Productos añadidos al inventario con éxito');
-    router.go(-1);
+    toast.add({
+      severity: "success",
+      summary: "Éxito",
+      detail: "Productos añadidos al inventario con éxito",
+      life: 3000,
+    });
+    setTimeout(() => router.go(-1), 1000);
   } catch (err) {
-    console.error('Error adding products:', err.response?.data);
-    alert('Error: ' + (err.response?.data?.message || 'No se pudo añadir'));
+    console.error("Error adding products:", err.response?.data);
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail: err.response?.data?.message || "No se pudo añadir",
+      life: 5000,
+    });
   } finally {
     isLoading.value = false;
   }
@@ -86,44 +114,62 @@ const saveAddition = async () => {
 
 <template>
   <div class="web-layout addition-layout">
-    
     <div class="form-card glass-panel">
-      
       <header class="card-header">
         <button class="icon-btn" @click="goBack" title="Volver">
-          <svg viewBox="0 0 24 24" class="header-icon"><path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          <svg viewBox="0 0 24 24" class="header-icon">
+            <path
+              fill="currentColor"
+              d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+            />
+          </svg>
         </button>
         <h2 class="header-title">Añadir Productos</h2>
         <div class="header-spacer"></div>
       </header>
 
       <div class="card-body">
-        
         <div class="form-fields">
-          
           <div class="field-item">
             <label class="field-label">Seleccionar Producto</label>
             <div class="input-wrapper editable-shadow">
               <select v-model="formState.productId" :disabled="productsLoading">
-                <option value="" disabled>Seleccione un producto del catálogo...</option>
-                <option v-for="product in products" :key="product.id" :value="product.id">
-                  {{ product.name || product.title || `${product.brand} ${product.type}` }}
+                <option value="" disabled>
+                  Seleccione un producto del catálogo...
+                </option>
+                <option
+                  v-for="product in products"
+                  :key="product.id"
+                  :value="product.id"
+                >
+                  {{
+                    product.name ||
+                    product.title ||
+                    `${product.brand} ${product.type}`
+                  }}
                 </option>
               </select>
-              <small v-if="productsLoading" class="loading-text">Cargando productos...</small>
-              <small v-else-if="products.length === 0" class="no-products-text">No hay productos disponibles</small>
+              <small v-if="productsLoading" class="loading-text"
+                >Cargando productos...</small
+              >
+              <small v-else-if="products.length === 0" class="no-products-text"
+                >No hay productos disponibles</small
+              >
             </div>
           </div>
 
-          
           <div class="field-item">
             <label class="field-label">Cantidad a Añadir *</label>
             <div class="input-wrapper editable-shadow">
-              <input type="number" v-model="formState.quantity" placeholder="Ej: 50" min="1" />
+              <input
+                type="number"
+                v-model="formState.quantity"
+                placeholder="Ej: 50"
+                min="1"
+              />
             </div>
           </div>
 
-          
           <div class="field-item">
             <label class="field-label">Fecha de Expiración (Opcional)</label>
             <div class="input-wrapper editable-shadow">
@@ -131,27 +177,32 @@ const saveAddition = async () => {
             </div>
           </div>
         </div>
-
       </div>
 
-      
       <div class="card-footer">
-        <button 
-          class="pill-btn save-btn" 
-          @click="saveAddition" 
+        <button
+          class="pill-btn save-btn"
+          @click="saveAddition"
           :disabled="!formState.quantity || !formState.productId || isLoading"
         >
           <span v-if="!isLoading">Añadir al Inventario</span>
-          <svg v-else class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
+          <svg v-else class="spinner" viewBox="0 0 50 50">
+            <circle
+              class="path"
+              cx="25"
+              cy="25"
+              r="20"
+              fill="none"
+              stroke-width="5"
+            ></circle>
+          </svg>
         </button>
       </div>
-
     </div>
   </div>
 </template>
 
 <style scoped>
-
 .addition-layout {
   min-height: 100vh;
   display: flex;
@@ -178,7 +229,6 @@ const saveAddition = async () => {
   flex-direction: column;
 }
 
-
 .card-header {
   display: flex;
   align-items: center;
@@ -194,7 +244,9 @@ const saveAddition = async () => {
   margin: 0;
 }
 
-.header-spacer { width: 42px; }
+.header-spacer {
+  width: 42px;
+}
 
 .icon-btn {
   background: transparent;
@@ -205,9 +257,13 @@ const saveAddition = async () => {
   transition: background 0.2s;
   color: #2b000d;
 }
-.icon-btn:hover { background: rgba(74, 27, 42, 0.08); }
-.header-icon { width: 26px; height: 26px; }
-
+.icon-btn:hover {
+  background: rgba(74, 27, 42, 0.08);
+}
+.header-icon {
+  width: 26px;
+  height: 26px;
+}
 
 .card-body {
   padding: 32px;
@@ -241,7 +297,7 @@ const saveAddition = async () => {
   background: #ffffff;
   box-sizing: border-box;
   transition: all 0.2s ease;
-  appearance: none; 
+  appearance: none;
 }
 
 .editable-shadow input:focus,
@@ -264,7 +320,6 @@ const saveAddition = async () => {
   color: #e53e3e;
 }
 
-
 .card-footer {
   padding: 0 32px 32px;
 }
@@ -284,7 +339,7 @@ const saveAddition = async () => {
 }
 
 .save-btn {
-  background: #2b000d; 
+  background: #2b000d;
   color: #ffffff;
   box-shadow: 0 8px 16px rgba(43, 0, 13, 0.2);
 }
@@ -301,7 +356,6 @@ const saveAddition = async () => {
   transform: none;
 }
 
-
 .spinner {
   animation: rotate 2s linear infinite;
   width: 24px;
@@ -312,10 +366,23 @@ const saveAddition = async () => {
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
 }
-@keyframes rotate { 100% { transform: rotate(360deg); } }
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
 @keyframes dash {
-  0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
-  50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
-  100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 </style>

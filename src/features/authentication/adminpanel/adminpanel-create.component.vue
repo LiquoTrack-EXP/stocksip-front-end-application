@@ -1,11 +1,6 @@
 <script>
 import { UserService } from "../services/user.service";
 
-/**
- * AdminPanelCreateComponent component.
- * @displayName AdminPanelCreateComponent
- * @version 1.0.0
- */
 export default {
   name: "AdminPanelCreateComponent",
   data() {
@@ -24,18 +19,31 @@ export default {
     };
   },
   methods: {
-    /**
-     * closeDialog
-     * @public
-     */
     closeDialog() {
       this.$router.go(-1);
     },
-    /**
-     * saveUser
-     * @public
-     */
+
     async saveUser() {
+      if (/\d/.test(this.newUser.name)) {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error de Validación",
+          detail: "El nombre no puede contener números.",
+          life: 5000,
+        });
+        return;
+      }
+
+      if (!/^\d+$/.test(this.newUser.phoneNumber)) {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error de Validación",
+          detail: "El número de teléfono solo puede contener números.",
+          life: 5000,
+        });
+        return;
+      }
+
       this.isLoading = true;
       try {
         const accountId = localStorage.getItem("accountId");
@@ -50,16 +58,25 @@ export default {
           profileRole: this.newUser.profileRole,
         });
 
-        alert(
-          "¡El usuario " + this.newUser.name + " se ha invitado exitosamente!",
-        );
+        this.$toast.add({
+          severity: "success",
+          summary: "Éxito",
+          detail:
+            "¡El usuario " +
+            this.newUser.name +
+            " se ha invitado exitosamente!",
+          life: 3000,
+        });
         this.$router.go(-1);
       } catch (err) {
         console.error("Error creating user:", err.response?.data);
-        alert(
-          "Error: " +
-            (err.response?.data?.message || "No se pudo invitar al usuario"),
-        );
+        this.$toast.add({
+          severity: "error",
+          summary: "Error",
+          detail:
+            err.response?.data?.message || "No se pudo invitar al usuario",
+          life: 5000,
+        });
       } finally {
         this.isLoading = false;
       }
@@ -72,12 +89,12 @@ export default {
   <div class="dialog-backdrop" @click.self="closeDialog">
     <div class="modal-card creation-model">
       <div class="modal-header">
-        <h2 class="hero-title">{{ $t('admin.new_user') }}</h2>
+        <h2 class="hero-title">{{ $t("admin.new_user") }}</h2>
       </div>
 
       <div class="modal-body-form">
         <div class="form-section">
-          <h4 class="section-label">{{ $t('admin.fields.name') }}</h4>
+          <h4 class="section-label">{{ $t("admin.fields.name") }}</h4>
 
           <div class="grid-form">
             <div class="field-item full-width">
@@ -151,13 +168,15 @@ export default {
             class="pill-btn cancel-btn"
             @click="closeDialog"
             :disabled="isLoading"
-          >{{ $t('common.cancel') }}</button>
+          >
+            {{ $t("common.cancel") }}
+          </button>
           <button
             class="pill-btn save-btn"
             @click="saveUser"
             :disabled="isLoading"
           >
-            <span v-if="!isLoading">{{ $t('common.save') }}</span>
+            <span v-if="!isLoading">{{ $t("common.save") }}</span>
             <svg
               v-else
               class="spinner"

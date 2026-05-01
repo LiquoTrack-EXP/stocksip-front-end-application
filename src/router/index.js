@@ -8,6 +8,8 @@ import WarehouseEditComponent from "@/features/inventorymanagement/warehouse/war
 import WarehousesCreateComponent from "@/features/inventorymanagement/warehouse/warehouses-create.component.vue";
 import CareGuideComponent from "@/features/inventorymanagement/careguide/careguide.component.vue";
 import CareGuideCreateComponent from "@/features/inventorymanagement/careguide/careguide-create.component.vue";
+import CareGuideEditComponent from "@/features/inventorymanagement/careguide/careguide-edit.component.vue";
+import CareGuideDetailComponent from "@/features/inventorymanagement/careguide/careguide-detail.component.vue";
 import ProfileComponent from "@/features/profilemanagement/profile/profile.component.vue";
 import StorageComponent from "@/features/inventorymanagement/storage/storage.component.vue";
 import ProductCreateComponent from "@/features/inventorymanagement/storage/product-create.component.vue";
@@ -22,8 +24,6 @@ import InventoryAdditionComponent from "@/features/inventorymanagement/inventori
 import InventorySubtrackComponent from "@/features/inventorymanagement/inventories/inventory-subtrack.component.vue";
 import InventoryTransferComponent from "@/features/inventorymanagement/inventories/inventory-transfer.component.vue";
 import InventoryDetailComponent from "@/features/inventorymanagement/inventories/inventory-detail.component.vue";
-
-// Nuevas rutas agregadas
 import SupplierSearchComponent from "@/features/procurementordering/suppliercatalogs/supplier-search.component.vue";
 import SupplierCatalogComponent from "@/features/procurementordering/suppliercatalogs/supplier-catalog.component.vue";
 import SupplierCatalogDetailComponent from "@/features/procurementordering/suppliercatalogs/supplier-catalog-detail.component.vue";
@@ -86,6 +86,16 @@ const routes = [
     path: "/care-guides/create",
     name: "careguide-create",
     component: CareGuideCreateComponent,
+  },
+  {
+    path: "/care-guides/edit/:id",
+    name: "careguide-edit",
+    component: CareGuideEditComponent,
+  },
+  {
+    path: "/care-guides/detail/:id",
+    name: "careguide-detail",
+    component: CareGuideDetailComponent,
   },
   {
     path: "/profile",
@@ -157,7 +167,6 @@ const routes = [
     name: "inventory-detail",
     component: InventoryDetailComponent,
   },
-  // Nuevas Rutas
   { path: "/supplier-search", name: "supplier-search", component: SupplierSearchComponent },
   { path: "/supplier-catalog/:id", name: "supplier-catalog", component: SupplierCatalogComponent },
   { path: "/supplier-catalog-detail/:id", name: "supplier-catalog-detail", component: SupplierCatalogDetailComponent },
