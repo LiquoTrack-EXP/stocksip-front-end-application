@@ -151,7 +151,7 @@
   },
   "admin": {
     "title": "Admin Panel", "subtitle": "Manage user access for your account",
-    "new_user": "New User", "manage_users": "Manage Users",
+    "new_user": "New Employee", "manage_users": "Manage Employees",
     "filters": { "all": "All", "admin": "Admin", "employee": "Employee" },
     "user_count": "Users", "limit_reached": "User limit reached for your plan",
     "empty_title": "No users found", "empty_desc": "There are no users with this role.",

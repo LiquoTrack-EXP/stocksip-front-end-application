@@ -6,6 +6,7 @@
  */
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { useToast } from 'primevue/usetoast';
 import { ProfileService } from "../services/profile.service";
 
 const { locale } = useI18n();
@@ -57,7 +58,22 @@ const cancelEdit = () => {
   isEditing.value = false;
 };
 
+const toast = useToast();
+
 const saveProfile = async () => {
+  if (!editForm.value.firstName || !editForm.value.lastName || !editForm.value.phoneNumber) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Todos los campos son obligatorios.', life: 5000 });
+    return;
+  }
+  if (/\d/.test(editForm.value.firstName) || /\d/.test(editForm.value.lastName)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre y apellido no pueden contener números.', life: 5000 });
+    return;
+  }
+  if (!/^\d+$/.test(editForm.value.phoneNumber)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El número de teléfono solo debe contener números.', life: 5000 });
+    return;
+  }
+
   isLoading.value = true;
   try {
     const formData = new FormData();
@@ -69,6 +85,7 @@ const saveProfile = async () => {
     await ProfileService.updateProfile(user.value.id, formData);
     await fetchProfile();
     isEditing.value = false;
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Perfil actualizado correctamente.', life: 3000 });
   } catch (error) {
     const errorData = error.response?.data;
     console.error("Error updating profile:", errorData);
@@ -78,7 +95,7 @@ const saveProfile = async () => {
     else if (errorData && errorData.errors)
       errorMsg = JSON.stringify(errorData.errors);
     else if (error.message) errorMsg = error.message;
-    alert(errorMsg);
+    toast.add({ severity: 'error', summary: 'Error', detail: errorMsg, life: 5000 });
   } finally {
     isLoading.value = false;
   }
