@@ -15,7 +15,17 @@ export default {
       this.$router.push(path).catch(() => {});
     },
     logout() {
-      this.$router.push("/").catch(() => {});
+      this.$confirm.require({
+        message: '¿Estás seguro que deseas cerrar sesión?',
+        header: 'Confirmación de cierre de sesión',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Sí, salir',
+        rejectLabel: 'Cancelar',
+        accept: () => {
+          localStorage.clear();
+          this.$router.push("/").catch(() => {});
+        }
+      });
     },
   },
   computed: {

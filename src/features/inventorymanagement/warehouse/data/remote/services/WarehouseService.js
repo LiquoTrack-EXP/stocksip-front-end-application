@@ -12,7 +12,7 @@ export const WarehouseService = {
    * @public
    */
   getAccountWarehouses(accountId) {
-    return httpClient.get(`/accounts/${accountId}/warehouses`);
+    return httpClient.get(import.meta.env.VITE_API_ACCOUNT_WAREHOUSES.replace('{accountId}', accountId));
   },
 
   
@@ -22,7 +22,7 @@ export const WarehouseService = {
    * @public
    */
   getWarehouse(warehouseId) {
-    return httpClient.get(`/warehouses/${warehouseId}`);
+    return httpClient.get(import.meta.env.VITE_API_WAREHOUSE_DETAILS.replace('{warehouseId}', warehouseId));
   },
 
   
@@ -33,8 +33,8 @@ export const WarehouseService = {
    * @public
    */
   registerWarehouse(accountId, formData) {
-    return httpClient.post(`/accounts/${accountId}/warehouses`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    return httpClient.post(import.meta.env.VITE_API_ACCOUNT_WAREHOUSES.replace('{accountId}', accountId), formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
 
@@ -46,8 +46,8 @@ export const WarehouseService = {
    * @public
    */
   updateWarehouse(warehouseId, formData) {
-    return httpClient.put(`/warehouses/${warehouseId}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    return httpClient.put(import.meta.env.VITE_API_WAREHOUSE_DETAILS.replace('{warehouseId}', warehouseId), formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
 
@@ -58,7 +58,7 @@ export const WarehouseService = {
    * @public
    */
   deleteWarehouse(warehouseId) {
-    return httpClient.delete(`/warehouses/${warehouseId}`);
+    return httpClient.delete(import.meta.env.VITE_API_WAREHOUSE_DETAILS.replace('{warehouseId}', warehouseId));
   },
 
   

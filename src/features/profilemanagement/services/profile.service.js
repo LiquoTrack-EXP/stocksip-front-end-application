@@ -64,13 +64,7 @@ export const ProfileService = {
   getMyProfile() {
     return httpClient.get(import.meta.env.VITE_API_PROFILES_ME);
   },
-  /**
-   * createProfile
-   * @param {any} formData
-   * @public
-   */
   createProfile(formData) {
-
     return httpClient.post(import.meta.env.VITE_API_PROFILES, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
@@ -93,14 +87,7 @@ export const ProfileService = {
   getProfileById(id) {
     return httpClient.get(import.meta.env.VITE_API_PROFILE_DETAILS.replace('{id}', id));
   },
-  /**
-   * updateProfile
-   * @param {any} id
-   * @param {any} formData
-   * @public
-   */
   updateProfile(id, formData) {
-
     return httpClient.put(import.meta.env.VITE_API_PROFILE_DETAILS.replace('{id}', id), formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });

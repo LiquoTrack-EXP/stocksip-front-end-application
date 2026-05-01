@@ -1,5 +1,5 @@
 <script>
-import { UserService } from '../services/user.service';
+import { UserService } from "../services/user.service";
 
 /**
  * AdminPanelComponent component.
@@ -16,11 +16,11 @@ export default {
       filters: ["All", "Admin", "Employee"],
       users: [],
       isLoading: true,
+      currentUserId: localStorage.getItem('userId') || '',
     };
   },
   computed: {
     isFull() {
-
       return this.maxUsers > 0 && this.totalUsers >= this.maxUsers;
     },
     filteredUsers() {
@@ -40,13 +40,13 @@ export default {
     async fetchUsers(role = "All") {
       this.isLoading = true;
       try {
-        const accountId = localStorage.getItem('accountId');
+        const accountId = localStorage.getItem("accountId");
         if (!accountId) return;
         const response = await UserService.getAccountUsers(accountId, role);
         const data = response.data;
-        const usersArray = Array.isArray(data) ? data : (data?.users || []);
+        const usersArray = Array.isArray(data) ? data : data?.users || [];
 
-        this.users = usersArray.map(u => ({
+        this.users = usersArray.map((u) => ({
           ...u,
           id: u.userId ?? u.id,
           name: u.fullName ?? u.name ?? u.email,
@@ -60,7 +60,7 @@ export default {
          * @public
          */
         if (err?.response?.status !== 404) {
-          console.error('Error fetching users:', err);
+          console.error("Error fetching users:", err);
         }
         this.users = [];
       } finally {
@@ -73,23 +73,42 @@ export default {
     },
     addUser() {
       if (this.isFull) return;
-      this.$router.push('/admin-panel/create');
+      this.$router.push("/admin-panel/create");
     },
     async deleteUser(userId, profileId) {
-      if (!confirm("¿Estás seguro que deseas retirar este permiso de acceso?")) return;
-      try {
-        await UserService.deleteUser(userId, profileId);
-        await this.fetchUsers(this.activeFilter);
-      } catch (err) {
-        console.error('Error deleting user:', err);
-        alert('No se pudo eliminar el usuario.');
-      }
+      this.$confirm.require({
+        message: "¿Estás seguro que deseas retirar este permiso de acceso?",
+        header: "Confirmación de revocación",
+        icon: "pi pi-exclamation-triangle",
+        acceptLabel: "Sí, retirar",
+        rejectLabel: "Cancelar",
+        accept: async () => {
+          try {
+            await UserService.deleteUser(userId, profileId);
+            this.$toast.add({
+              severity: "success",
+              summary: "Éxito",
+              detail: "Permiso retirado.",
+              life: 3000,
+            });
+            await this.fetchUsers(this.activeFilter);
+          } catch (err) {
+            console.error("Error deleting user:", err);
+            this.$toast.add({
+              severity: "error",
+              summary: "Error",
+              detail: "No se pudo eliminar el usuario.",
+              life: 3000,
+            });
+          }
+        },
+      });
     },
     editUser(id) {
-      this.$router.push('/admin-panel/edit/' + id);
+      this.$router.push("/admin-panel/edit/" + id);
     },
     viewDetails(id) {
-      this.$router.push('/admin-panel/view/' + id);
+      this.$router.push("/admin-panel/view/" + id);
     },
   },
 };
@@ -98,31 +117,29 @@ export default {
 <template>
   <div class="admin-panel-container web-layout">
     <div class="content-wrapper">
-      
       <header class="web-header">
         <div class="header-titles">
-          <h1 class="page-title">{{ $t('admin.title') }}</h1>
+          <h1 class="page-title">{{ $t("admin.title") }}</h1>
           <p class="page-subtitle">
-            {{ $t('admin.subtitle') }}
+            {{ $t("admin.subtitle") }}
           </p>
         </div>
       </header>
 
-      
       <div class="admin-dashboard-toolbar">
-        
         <div class="capacity-block glass-panel">
           <div class="cap-text-area">
-            <span class="cap-title">{{ $t('admin.user_count') }}</span>
-            <span class="cap-count">{{ users.length }}/{{ maxUsers > 0 ? maxUsers : '∞' }}</span>
+            <span class="cap-title">{{ $t("admin.user_count") }}</span>
+            <span class="cap-count"
+              >{{ users.length }}/{{ maxUsers > 0 ? maxUsers : "∞" }}</span
+            >
           </div>
-          
+
           <span class="cap-status" :class="{ 'status-full': isFull }">
-            {{ isFull ? $t('admin.limit_reached') : $t('common.available') }}
+            {{ isFull ? $t("admin.limit_reached") : $t("common.available") }}
           </span>
         </div>
 
-        
         <div class="action-filters-block glass-panel">
           <div class="filters-pill-group">
             <button
@@ -132,12 +149,10 @@ export default {
               :class="{ active: activeFilter === filter }"
               @click="setFilter(filter)"
             >
-              
               {{ filter === "Administrador" ? "Administr" : filter }}
             </button>
           </div>
 
-          
           <button
             class="add-user-btn"
             :disabled="isFull"
@@ -151,24 +166,21 @@ export default {
                 d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
               />
             </svg>
-            <span class="btn-text">{{ $t('common.new') }}</span>
+            <span class="btn-text">{{ $t("common.new") }}</span>
           </button>
         </div>
       </div>
 
-      
       <div class="users-grid">
         <div
           class="user-card glass-panel"
           v-for="user in filteredUsers"
           :key="user.id"
         >
-          
           <div class="online-indicator"></div>
 
           <div class="card-left">
             <div class="avatar-circle">
-              
               <svg viewBox="0 0 24 24" class="avatar-icon">
                 <path
                   fill="currentColor"
@@ -183,19 +195,16 @@ export default {
           </div>
 
           <div class="card-right">
-            
             <span class="role-chip">{{
               user.role === "Administrador" ? "Admin" : user.role
             }}</span>
 
             <div class="action-icons-group">
-              
               <button
                 class="action-icon-btn view-btn"
                 @click="viewDetails(user.id)"
                 title="Ver detalles"
               >
-                
                 <svg viewBox="0 0 24 24" class="action-icon">
                   <path
                     fill="currentColor"
@@ -204,8 +213,8 @@ export default {
                 </svg>
               </button>
 
-              
               <button
+                v-if="String(user.id) !== String(currentUserId) && String(user.userId) !== String(currentUserId)"
                 class="delete-icon-btn"
                 @click="deleteUser(user.id, user.profileId)"
                 title="Revocar usuario"
@@ -227,10 +236,10 @@ export default {
 
 <style scoped>
 .admin-panel-container {
-  --top-bg: #2b000d; 
-  --bottom-bg: #f4ecec; 
-  --accent-red: #e02020; 
-  --button-dark: #351421; 
+  --top-bg: #2b000d;
+  --bottom-bg: #f4ecec;
+  --accent-red: #e02020;
+  --button-dark: #351421;
   --white: #ffffff;
 
   --glass-bg: rgba(255, 255, 255, 0.95);
@@ -268,7 +277,6 @@ export default {
   }
 }
 
-
 .web-header {
   margin-bottom: 30px;
 }
@@ -292,7 +300,6 @@ export default {
   color: var(--text-secondary);
 }
 
-
 .glass-panel {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -300,13 +307,11 @@ export default {
   border-radius: 20px;
 }
 
-
 .admin-dashboard-toolbar {
   display: flex;
   gap: 24px;
   margin-bottom: 40px;
 }
-
 
 .capacity-block {
   flex: 0 0 350px;
@@ -314,10 +319,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 24px 30px;
-  
+
   background: #ebe0e0;
   border-radius: 20px;
-  border: none; 
+  border: none;
 }
 
 .cap-text-area {
@@ -341,15 +346,13 @@ export default {
 .cap-status {
   font-size: 15px;
   font-weight: 800;
-  color: #3b8e4e; 
+  color: #3b8e4e;
   transition: color 0.3s ease;
 }
-
 
 .cap-status.status-full {
   color: #d13232;
 }
-
 
 .action-filters-block {
   flex: 1;
@@ -388,10 +391,8 @@ export default {
 }
 
 .filter-pill.active {
-  
   border-color: rgba(43, 0, 13, 0.4);
 }
-
 
 .add-user-btn {
   display: inline-flex;
@@ -414,9 +415,8 @@ export default {
   background: var(--top-bg);
 }
 
-
 .add-user-btn.btn-disabled {
-  background: #a39599; 
+  background: #a39599;
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
@@ -433,7 +433,6 @@ export default {
   font-size: 15px;
   margin-left: 6px;
 }
-
 
 .users-grid {
   display: grid;
@@ -459,7 +458,6 @@ export default {
   box-shadow: 0 16px 40px rgba(43, 0, 13, 0.1);
 }
 
-
 .online-indicator {
   position: absolute;
   bottom: 24px;
@@ -480,7 +478,7 @@ export default {
   width: 65px;
   height: 65px;
   border-radius: 50%;
-  background-color: #c0b9ba; 
+  background-color: #c0b9ba;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -490,7 +488,7 @@ export default {
   width: 70px;
   height: 70px;
   color: var(--white);
-  margin-top: 8px; 
+  margin-top: 8px;
 }
 
 .user-info {
@@ -502,13 +500,13 @@ export default {
   margin: 0 0 4px;
   font-size: 18px;
   font-weight: 800;
-  color: #3b1923; 
+  color: #3b1923;
 }
 
 .u-email {
   margin: 0;
   font-size: 14px;
-  color: #928a8d; 
+  color: #928a8d;
   font-weight: 500;
 }
 
@@ -527,7 +525,6 @@ export default {
   font-size: 12px;
   font-weight: 700;
 }
-
 
 .action-icons-group {
   display: flex;
@@ -551,7 +548,6 @@ export default {
   height: 22px;
 }
 
-
 .view-btn {
   color: #687b8f;
 }
@@ -560,7 +556,6 @@ export default {
   transform: scale(1.1);
 }
 
-
 .edit-btn {
   color: #a8945a;
 }
@@ -568,7 +563,6 @@ export default {
   background: rgba(168, 148, 90, 0.1);
   transform: scale(1.1);
 }
-
 
 .delete-icon-btn {
   background: transparent;
@@ -592,7 +586,6 @@ export default {
   width: 22px;
   height: 22px;
 }
-
 
 @media (max-width: 950px) {
   .admin-dashboard-toolbar {

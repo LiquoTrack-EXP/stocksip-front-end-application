@@ -1,11 +1,7 @@
 <script>
-import { AuthService } from './data/remote/services/AuthService';
+import { AuthService } from "./data/remote/services/AuthService";
+import { SubscriptionService } from "@/features/paymentsandsubscriptions/services/subscription.service";
 
-/**
- * LoginComponent component.
- * @displayName LoginComponent
- * @version 1.0.0
- */
 export default {
   name: "LoginComponent",
   data() {
@@ -14,41 +10,49 @@ export default {
       password: "",
       passwordVisible: false,
       loading: false,
-      error: ""
+      error: "",
     };
   },
   methods: {
-    /**
-     * handleLogin
-     * @public
-     */
     async handleLogin() {
       this.loading = true;
       this.error = "";
-      
+
       try {
         const response = await AuthService.signIn({
           email: this.email,
-          password: this.password
-        });
+          password: this.password,
+        });
+
         const { token, userId, accountId } = response.data;
-        
-        /**
-         * if
-         * @param {any} token
-         * @public
-         */
+
         if (token) {
-          localStorage.setItem('token', token);
-          localStorage.setItem('userId', userId || '');
-          localStorage.setItem('accountId', accountId || '');
-          localStorage.setItem('userEmail', response.data.email || '');
-          
-          this.$router.push("/admin-panel");
+          localStorage.setItem("token", token);
+          localStorage.setItem("userId", userId || "");
+          localStorage.setItem("accountId", accountId || "");
+          localStorage.setItem("userEmail", response.data.email || "");
+
+          try {
+            const subResponse =
+              await SubscriptionService.getSubscriptionByAccountId(accountId);
+            if (
+              subResponse.data &&
+              (subResponse.data.id || subResponse.data.subscriptionId)
+            ) {
+              this.$router.push("/home");
+            } else {
+              this.$router.push("/plans");
+            }
+          } catch (subErr) {
+            this.$router.push("/plans");
+          }
         }
       } catch (err) {
         console.error("Login error detail:", err.response?.data);
-        this.error = err.response?.data?.message || err.response?.data?.errors || "Invalid email or password. Please try again.";
+        this.error =
+          err.response?.data?.message ||
+          err.response?.data?.errors ||
+          "Invalid email or password. Please try again.";
       } finally {
         this.loading = false;
       }
@@ -73,12 +77,17 @@ export default {
       </div>
 
       <div class="form-section">
-        <h2 class="welcome-text">{{ $t('auth.login.title') }}</h2>
-        <p class="subtitle">{{ $t('auth.login.subtitle') }}</p>
+        <h2 class="welcome-text">{{ $t("auth.login.title") }}</h2>
+        <p class="subtitle">{{ $t("auth.login.subtitle") }}</p>
 
         <div v-if="error" class="error-message">
-          <svg viewBox="0 0 24 24" class="error-icon"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          {{ typeof error === 'string' ? error : 'Authentication failed' }}
+          <svg viewBox="0 0 24 24" class="error-icon">
+            <path
+              fill="currentColor"
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+            />
+          </svg>
+          {{ typeof error === "string" ? error : "Authentication failed" }}
         </div>
 
         <form @submit.prevent="handleLogin" class="login-form">
@@ -157,10 +166,10 @@ export default {
             <a href="#" class="forgot-link">Forgot password?</a>
           </div>
 
-          <pv-button 
-            type="submit" 
-            :label="loading ? 'Signing In...' : 'Sign In'" 
-            class="sign-in-btn" 
+          <pv-button
+            type="submit"
+            :label="loading ? 'Signing In...' : 'Sign In'"
+            class="sign-in-btn"
             :disabled="loading"
           />
         </form>
@@ -706,7 +715,6 @@ export default {
   color: rgba(229, 62, 62, 0.8);
 }
 
-
 @media (max-width: 480px) {
   .login-card {
     padding: 0;
@@ -735,7 +743,6 @@ export default {
     padding: 34px 26px;
   }
 }
-
 
 .login-card {
   animation: slideUp 0.6s ease-out;
