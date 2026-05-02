@@ -89,6 +89,22 @@ export default {
         this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre del producto no puede ser solo números.', life: 5000 });
         return;
       }
+      if (this.form.unitPrice < 0.01) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El precio unitario debe ser al menos 0.01.', life: 5000 });
+        return;
+      }
+      if (!Number.isInteger(Number(this.form.minStock)) || this.form.minStock < 0) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El stock mínimo debe ser un número entero mayor o igual a 0.', life: 5000 });
+        return;
+      }
+      if (!Number.isInteger(Number(this.form.contentCapacity)) || this.form.contentCapacity < 0) {
+        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La cantidad debe ser un número entero mayor o igual a 0.', life: 5000 });
+        return;
+      }
+      if (Number(this.form.contentCapacity) < Number(this.form.minStock)) {
+        this.$toast.add({ severity: 'warn', summary: 'Advertencia', detail: 'La cantidad ingresada es menor al stock mínimo establecido.', life: 5000 });
+      }
+
 
       this.isLoading = true;
       try {

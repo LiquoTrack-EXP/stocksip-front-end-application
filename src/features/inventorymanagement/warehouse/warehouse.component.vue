@@ -58,7 +58,7 @@ export default {
     goToCreate() {
 
       if (this.maxWarehouses > 0 && this.warehouses.length >= this.maxWarehouses) {
-        alert("¡Has alcanzado el límite máximo de almacenes de tu plan!");
+        this.$toast.add({ severity: 'warn', summary: 'Límite alcanzado', detail: '¡Has alcanzado el límite máximo de almacenes de tu plan!', life: 3000 });
         return;
       }
       this.$router.push("/warehouses/create");
