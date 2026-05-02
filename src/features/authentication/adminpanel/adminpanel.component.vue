@@ -171,7 +171,18 @@ export default {
         </div>
       </div>
 
-      <div class="users-grid">
+      <div v-if="!isLoading && filteredUsers.length === 0" class="empty-users-state glass-panel">
+        <svg viewBox="0 0 24 24" class="empty-icon">
+          <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+        </svg>
+        <p class="empty-title">Aún no hay trabajadores registrados</p>
+        <p class="empty-subtitle">Invita a tu primer trabajador para comenzar a gestionar tu equipo.</p>
+        <button class="pill-btn add-first-btn" @click="addUser" v-if="!isFull">
+          Registrar primer empleado
+        </button>
+      </div>
+
+      <div class="users-grid" v-else>
         <div
           class="user-card glass-panel"
           v-for="user in filteredUsers"
@@ -614,5 +625,52 @@ export default {
   .users-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.empty-users-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px dashed rgba(43, 0, 13, 0.1);
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  color: #d1b6ab;
+  margin-bottom: 24px;
+}
+
+.empty-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #2b000d;
+  margin: 0 0 12px;
+}
+
+.empty-subtitle {
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+.add-first-btn {
+  background: #2b000d;
+  color: white;
+  padding: 16px 36px;
+  border-radius: 30px;
+  font-weight: 800;
+  box-shadow: 0 12px 24px rgba(43, 0, 13, 0.2);
+}
+
+.add-first-btn:hover {
+  background: #4a1b2a;
+  transform: translateY(-2px);
 }
 </style>
