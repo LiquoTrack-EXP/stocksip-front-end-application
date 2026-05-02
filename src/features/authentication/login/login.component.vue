@@ -49,7 +49,7 @@ export default {
         }
       } catch (err) {
         const errorData = err.response?.data;
-        console.error("Login error detail:", errorData);
+        console.error("Login error detail:", errorData ?? err.message ?? err);
         let errorMsg = "Credenciales inválidas. Por favor intente de nuevo.";
 
         if (typeof errorData === "string") {

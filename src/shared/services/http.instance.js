@@ -15,7 +15,7 @@ import {authenticationInterceptor} from "@/authentication/services/authenticatio
  * @property {string} headers.Access-Control-Allow-Origin - CORS header to allow all origins
  */
 const httpInstance = axios.create({
-    baseURL: import.meta.env.VITE_BASE_API_URL,
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
     headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
 });
 
