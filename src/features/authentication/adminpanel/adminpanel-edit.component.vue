@@ -64,7 +64,7 @@ export default {
         });
         return;
       }
-      if (!/^\d+$/.test(this.user.telefono)) {
+      if (!/^\+?\d+$/.test(this.user.telefono)) {
         this.$toast.add({
           severity: "error",
           summary: "Error de Validación",

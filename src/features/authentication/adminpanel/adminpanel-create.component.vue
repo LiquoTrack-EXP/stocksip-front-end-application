@@ -34,7 +34,7 @@ export default {
         return;
       }
 
-      if (!/^\d+$/.test(this.newUser.phoneNumber)) {
+      if (!/^\+?\d+$/.test(this.newUser.phoneNumber)) {
         this.$toast.add({
           severity: "error",
           summary: "Error de Validación",

@@ -61,6 +61,18 @@ const onProductSelected = () => {
 
 const saveSubtrack = async () => {
   const qty = Number(formState.value.quantity);
+  if (!Number.isFinite(qty) || qty <= 0 || !Number.isInteger(qty)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Número no admitido.', life: 5000 });
+    return;
+  }
+  if (!formState.value.productId) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Debe seleccionar un producto.', life: 5000 });
+    return;
+  }
+  if (!formState.value.exitType) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Debe seleccionar un motivo de salida.', life: 5000 });
+    return;
+  }
   if (qty > 10000) {
     toast.add({ severity: 'error', summary: 'Límite Excedido', detail: 'El máximo permitido por retiro es de 10,000 unidades.', life: 5000 });
     return;
@@ -80,8 +92,11 @@ const saveSubtrack = async () => {
     toast.add({ severity: 'success', summary: 'Éxito', detail: 'Productos retirados del inventario con éxito', life: 3000 });
     setTimeout(() => router.go(-1), 1000);
   } catch (err) {
+    const status = err.response?.status;
     const errorData = err.response?.data;
-    console.error('Error subtracting products:', errorData);
+    console.error('[subtract] HTTP status:', status);
+    console.error('[subtract] Error body:', errorData);
+    console.error('[subtract] Full error:', err);
     let errorMsg = 'No se pudo retirar los productos del inventario.';
 
     if (typeof errorData === "string") {

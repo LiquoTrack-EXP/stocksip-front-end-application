@@ -21,7 +21,7 @@ const formState = ref({
   city: '',
   district: '',
   postalCode: '',
-  country: '',
+  country: 'Perú',
   capacity: '',
   minTemp: '',
   maxTemp: ''
@@ -113,7 +113,7 @@ const saveWarehouse = async () => {
 const isValidFormat = computed(() => {
   return formState.value.name && formState.value.street && formState.value.city && 
          formState.value.district && formState.value.postalCode && formState.value.country &&
-         Number(formState.value.capacity) >= 500 && 
+         Number(formState.value.capacity) >= 0 && 
          Number(formState.value.minTemp) < Number(formState.value.maxTemp);
 });
 </script>
@@ -155,7 +155,7 @@ const isValidFormat = computed(() => {
             </div>
             <div class="field-group flex-1 editable-shadow">
               <label class="field-label">Capacidad (uds)</label>
-              <input type="number" min="500" v-model="formState.capacity" placeholder="Ej: 500" />
+              <input type="number" min="0" v-model="formState.capacity" placeholder="Ej: 500" />
             </div>
           </div>
 
@@ -183,9 +183,8 @@ const isValidFormat = computed(() => {
             </div>
             <div class="field-group flex-1 editable-shadow select-arrow-wrap">
               <label class="field-label">País</label>
-              <select v-model="formState.country" required>
-                <option value="" disabled>Seleccione un país</option>
-                <option v-for="pais in paises" :key="pais" :value="pais">{{ pais }}</option>
+              <select v-model="formState.country" required disabled>
+                <option value="Perú">Perú</option>
               </select>
             </div>
             <div class="field-group flex-1 editable-shadow">
