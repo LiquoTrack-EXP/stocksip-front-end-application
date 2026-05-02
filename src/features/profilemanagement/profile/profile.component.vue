@@ -90,12 +90,18 @@ const saveProfile = async () => {
     const errorData = error.response?.data;
     console.error("Error updating profile:", errorData);
     let errorMsg = "Error al actualizar el perfil";
-    if (typeof errorData === "string") errorMsg = errorData;
-    else if (errorData && errorData.message) errorMsg = errorData.message;
-    else if (errorData && errorData.errors)
-      errorMsg = JSON.stringify(errorData.errors);
-    else if (error.message) errorMsg = error.message;
-    toast.add({ severity: 'error', summary: 'Error', detail: errorMsg, life: 5000 });
+
+    if (typeof errorData === "string") {
+      errorMsg = errorData;
+    } else if (errorData && errorData.errors) {
+      errorMsg = Object.values(errorData.errors).flat().join(' ');
+    } else if (errorData && errorData.message) {
+      errorMsg = errorData.message;
+    } else if (error.message) {
+      errorMsg = error.message;
+    }
+    
+    toast.add({ severity: 'error', summary: 'Error del Servidor', detail: errorMsg, life: 7000 });
   } finally {
     isLoading.value = false;
   }

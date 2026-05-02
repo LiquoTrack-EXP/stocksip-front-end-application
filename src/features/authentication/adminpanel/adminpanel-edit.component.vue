@@ -103,17 +103,23 @@ export default {
       } catch (err) {
         const errorData = err.response?.data;
         console.error("Error updating profile:", errorData);
-        let errorMsg = "Hubo un problema al actualizar el perfil.";
-        if (typeof errorData === "string") errorMsg = errorData;
-        else if (errorData && errorData.message) errorMsg = errorData.message;
-        else if (errorData && errorData.errors) errorMsg = JSON.stringify(errorData.errors);
-        else if (err.message) errorMsg = err.message;
+        let errorMsg = "Hubo un problema al actualizar el trabajador.";
+
+        if (typeof errorData === "string") {
+          errorMsg = errorData;
+        } else if (errorData && errorData.errors) {
+          errorMsg = Object.values(errorData.errors).flat().join(" ");
+        } else if (errorData && errorData.message) {
+          errorMsg = errorData.message;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
 
         this.$toast.add({
           severity: "error",
-          summary: "Error",
+          summary: "Error del Servidor",
           detail: errorMsg,
-          life: 5000,
+          life: 7000,
         });
       }
     },

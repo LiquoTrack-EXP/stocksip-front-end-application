@@ -136,13 +136,15 @@ export default {
         console.error('[addProduct] Full error:', err);
         const isTimeout = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
         const isNoResponse = !err.response;
-        let msg;
+        let msg = 'Ocurrió un problema inesperado.';
         if (isTimeout || isNoResponse) {
-          msg = 'El servidor tardó demasiado en responder. Verifica que el backend esté activo y la base de datos conectada.';
+          msg = 'El servidor tardó demasiado en responder. Verifica que el backend esté activo.';
+        } else if (body && body.errors) {
+          msg = Object.values(body.errors).flat().join(' ');
         } else {
           msg = body?.message || body?.title || body?.error || JSON.stringify(body) || 'Error desconocido';
         }
-        this.$toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 5000 });
+        this.$toast.add({ severity: 'error', summary: 'Error del Servidor', detail: msg, life: 7000 });
       } finally {
         this.isLoading = false;
       }
