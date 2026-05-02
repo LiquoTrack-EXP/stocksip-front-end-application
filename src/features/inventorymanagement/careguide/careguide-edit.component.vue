@@ -65,8 +65,8 @@ const saveGuide = async () => {
     await CareGuideService.updateCareGuide(careGuideId.value, {
       title: formState.value.title,
       summary: formState.value.summary,
-      minTemp: Number(formState.value.minTemp),
-      maxTemp: Number(formState.value.maxTemp),
+      recommendedMinTemperature: parseFloat(formState.value.minTemp),
+      recommendedMaxTemperature: parseFloat(formState.value.maxTemp),
       productType: formState.value.productType
     });
     alert('Guía actualizada con éxito');
