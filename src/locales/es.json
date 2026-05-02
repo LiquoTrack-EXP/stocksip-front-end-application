@@ -151,7 +151,7 @@
   },
   "admin": {
     "title": "Panel de Administración", "subtitle": "Administra el acceso de usuarios a tu cuenta",
-    "new_user": "Nuevo Usuario", "manage_users": "Gestionar Usuarios",
+    "new_user": "Nuevo Trabajador", "manage_users": "Gestionar Trabajadores",
     "filters": { "all": "Todos", "admin": "Administrador", "employee": "Empleado" },
     "user_count": "Usuarios", "limit_reached": "Límite de usuarios alcanzado para tu plan",
     "empty_title": "Sin usuarios", "empty_desc": "No hay usuarios con este rol.",

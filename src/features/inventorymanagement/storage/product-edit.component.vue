@@ -69,6 +69,22 @@ const saveProduct = async () => {
     toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre del producto no puede ser solo números.', life: 5000 });
     return;
   }
+  if (formState.value.unitPrice < 0.01) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El precio unitario debe ser al menos 0.01.', life: 5000 });
+    return;
+  }
+  if (!Number.isInteger(Number(formState.value.minimumStock)) || formState.value.minimumStock < 0) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El stock mínimo debe ser un número entero mayor o igual a 0.', life: 5000 });
+    return;
+  }
+  if (!Number.isInteger(Number(formState.value.content)) || formState.value.content < 0) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La cantidad debe ser un número entero mayor o igual a 0.', life: 5000 });
+    return;
+  }
+  if (Number(formState.value.content) < Number(formState.value.minimumStock)) {
+    toast.add({ severity: 'warn', summary: 'Advertencia', detail: 'La cantidad ingresada es menor al stock mínimo establecido.', life: 5000 });
+  }
+
 
   isLoading.value = true;
   try {
