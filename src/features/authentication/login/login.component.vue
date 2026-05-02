@@ -48,11 +48,21 @@ export default {
           }
         }
       } catch (err) {
-        console.error("Login error detail:", err.response?.data);
-        this.error =
-          err.response?.data?.message ||
-          err.response?.data?.errors ||
-          "Invalid email or password. Please try again.";
+        const errorData = err.response?.data;
+        console.error("Login error detail:", errorData);
+        let errorMsg = "Credenciales inválidas. Por favor intente de nuevo.";
+
+        if (typeof errorData === "string") {
+          errorMsg = errorData;
+        } else if (errorData && errorData.errors) {
+          errorMsg = Object.values(errorData.errors).flat().join(" ");
+        } else if (errorData && errorData.message) {
+          errorMsg = errorData.message;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+
+        this.error = errorMsg;
       } finally {
         this.loading = false;
       }

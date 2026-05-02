@@ -99,12 +99,25 @@ const saveAddition = async () => {
     });
     setTimeout(() => router.go(-1), 1000);
   } catch (err) {
-    console.error("Error adding products:", err.response?.data);
+    const errorData = err.response?.data;
+    console.error("Error adding products:", errorData);
+    let errorMsg = "No se pudo añadir los productos al inventario.";
+
+    if (typeof errorData === "string") {
+      errorMsg = errorData;
+    } else if (errorData && errorData.errors) {
+      errorMsg = Object.values(errorData.errors).flat().join(" ");
+    } else if (errorData && errorData.message) {
+      errorMsg = errorData.message;
+    } else if (err.message) {
+      errorMsg = err.message;
+    }
+
     toast.add({
       severity: "error",
-      summary: "Error",
-      detail: err.response?.data?.message || "No se pudo añadir",
-      life: 5000,
+      summary: "Error del Servidor",
+      detail: errorMsg,
+      life: 7000,
     });
   } finally {
     isLoading.value = false;
