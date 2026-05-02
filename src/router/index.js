@@ -186,4 +186,16 @@ const router = createRouter({
   routes,
 });
 
+router.beforeEach((to, from, next) => {
+  const publicPages = ['/sign-in', '/sign-up'];
+  const authRequired = !publicPages.includes(to.path);
+  const loggedIn = localStorage.getItem('token');
+
+  if (authRequired && !loggedIn) {
+    return next('/sign-in');
+  }
+
+  next();
+});
+
 export default router;
