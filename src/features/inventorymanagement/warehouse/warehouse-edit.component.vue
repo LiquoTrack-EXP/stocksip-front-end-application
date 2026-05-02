@@ -80,31 +80,53 @@ const saveWarehouse = async () => {
     return;
   }
 
-  if (parseFloat(formState.value.minTemp) > parseFloat(formState.value.maxTemp)) {
-    toast.add({ severity: 'error', summary: 'Temperatura Errónea', detail: 'La temperatura mínima no puede ser mayor a la máxima.', life: 5000 });
+  const minTemp = parseFloat(formState.value.minTemp);
+  const maxTemp = parseFloat(formState.value.maxTemp);
+  const capacity = parseFloat(formState.value.capacity);
+
+  if (isNaN(minTemp) || isNaN(maxTemp) || isNaN(capacity)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Capacidad y temperaturas deben ser números válidos.', life: 5000 });
+    return;
+  }
+
+  if (minTemp >= maxTemp) {
+    toast.add({ severity: 'error', summary: 'Temperatura Errónea', detail: 'La temperatura mínima no puede ser mayor o igual a la máxima.', life: 5000 });
     return;
   }
 
   isLoading.value = true;
   try {
     const formData = new FormData();
-    formData.append('Name', formState.value.name);
-    formData.append('AddressStreet', formState.value.street);
-    formData.append('AddressCity', formState.value.city);
-    formData.append('AddressDistrict', formState.value.district);
-    formData.append('AddressPostalCode', formState.value.postalCode);
-    formData.append('AddressCountry', formState.value.country);
-    formData.append('Capacity', formState.value.capacity);
-    formData.append('TemperatureMin', formState.value.minTemp);
-    formData.append('TemperatureMax', formState.value.maxTemp);
+    formData.append('Name', formState.value.name || '');
+    formData.append('AddressStreet', formState.value.street || '');
+    formData.append('AddressCity', formState.value.city || '');
+    formData.append('AddressDistrict', formState.value.district || '');
+    formData.append('AddressPostalCode', formState.value.postalCode || '');
+    formData.append('AddressCountry', formState.value.country || 'Perú');
+    formData.append('Capacity', capacity.toString());
+    formData.append('TemperatureMin', minTemp.toString());
+    formData.append('TemperatureMax', maxTemp.toString());
     if (imageFile.value) formData.append('Image', imageFile.value);
 
     await WarehouseService.updateWarehouse(warehouseId.value, formData);
     toast.add({ severity: 'success', summary: 'Éxito', detail: 'Almacén actualizado con éxito', life: 3000 });
     setTimeout(() => router.push('/warehouses'), 1000);
   } catch (err) {
-    console.error('Error updating warehouse:', err.response?.data);
-    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error desconocido', life: 5000 });
+    const errorData = err.response?.data;
+    console.error('Error updating warehouse:', errorData);
+    let errorMsg = 'No se pudo actualizar el almacén.';
+    
+    if (typeof errorData === 'string') {
+      errorMsg = errorData;
+    } else if (errorData?.errors) {
+      errorMsg = Object.values(errorData.errors).flat().join(' ');
+    } else if (errorData?.detail) {
+      errorMsg = errorData.detail;
+    } else if (errorData?.message) {
+      errorMsg = errorData.message;
+    }
+    
+    toast.add({ severity: 'error', summary: 'Error del Servidor', detail: errorMsg, life: 5000 });
   } finally {
     isLoading.value = false;
   }

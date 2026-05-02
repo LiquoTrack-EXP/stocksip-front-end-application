@@ -84,11 +84,16 @@ const saveSubtrack = async () => {
 
   isLoading.value = true;
   try {
-    await InventoryService.subtractProducts(warehouseId, formState.value.productId, {
+    const payload = {
       quantityToDecrease: qty,
-      exitType: formState.value.exitType,
-      expirationDate: formState.value.expirationDate || null
-    });
+      exitType: formState.value.exitType
+    };
+    
+    if (formState.value.expirationDate) {
+      payload.expirationDate = formState.value.expirationDate;
+    }
+
+    await InventoryService.subtractProducts(warehouseId, formState.value.productId, payload);
     toast.add({ severity: 'success', summary: 'Éxito', detail: 'Productos retirados del inventario con éxito', life: 3000 });
     setTimeout(() => router.go(-1), 1000);
   } catch (err) {
@@ -101,9 +106,14 @@ const saveSubtrack = async () => {
 
     if (typeof errorData === "string") {
       errorMsg = errorData;
-    } else if (errorData && errorData.errors) {
+    } else if (errorData?.detail) {
+      errorMsg = errorData.detail;
+      if (errorMsg.includes('does not exist')) {
+        errorMsg = 'El inventario para este producto no existe. Verifica que haya stock agregado previamente.';
+      }
+    } else if (errorData?.errors) {
       errorMsg = Object.values(errorData.errors).flat().join(" ");
-    } else if (errorData && errorData.message) {
+    } else if (errorData?.message) {
       errorMsg = errorData.message;
     } else if (err.message) {
       errorMsg = err.message;

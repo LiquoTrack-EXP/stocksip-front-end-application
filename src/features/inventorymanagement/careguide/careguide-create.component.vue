@@ -58,6 +58,19 @@ export default {
      * @public
      */
     async saveGuide() {
+      const minTemp = parseFloat(this.form.minTemp);
+      const maxTemp = parseFloat(this.form.maxTemp);
+
+      if (isNaN(minTemp) || isNaN(maxTemp)) {
+        alert("Por favor ingresa valores numéricos válidos para las temperaturas");
+        return;
+      }
+
+      if (minTemp >= maxTemp) {
+        alert("La temperatura mínima debe ser menor que la temperatura máxima");
+        return;
+      }
+
       this.isLoading = true;
       try {
         const accountId = localStorage.getItem("accountId");
@@ -68,8 +81,8 @@ export default {
           productName: this.form.productId,
           title: `Guía de conservación`,
           summary: this.form.comments,
-          recommendedMinTemperature: Number(this.form.minTemp),
-          recommendedMaxTemperature: Number(this.form.maxTemp),
+          recommendedMinTemperature: minTemp,
+          recommendedMaxTemperature: maxTemp,
         });
 
         alert("¡Nueva guía ha sido agregada con éxito!");
@@ -204,7 +217,7 @@ export default {
                     type="number"
                     step="0.5"
                     v-model="form.minTemp"
-                    placeholder="Min. Temperature"
+                    placeholder="Ej: 12"
                     required
                   />
                   <span class="suffix">°C</span>
@@ -218,7 +231,7 @@ export default {
                     type="number"
                     step="0.5"
                     v-model="form.maxTemp"
-                    placeholder="Max. Temperature"
+                    placeholder="Ej: 18"
                     required
                   />
                   <span class="suffix">°C</span>
