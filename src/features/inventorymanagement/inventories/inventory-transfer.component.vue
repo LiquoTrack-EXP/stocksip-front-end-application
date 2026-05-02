@@ -6,10 +6,12 @@
  */
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useToast } from 'primevue/usetoast';
 import { InventoryService, WarehouseService } from '@/features/inventorymanagement/services/inventory.service';
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
 const warehouseId = route.params.warehouseId || '';
 const productId = route.params.productId || '';
@@ -69,18 +71,66 @@ const onProductSelected = () => {
 };
 
 const executeTransfer = async () => {
+  const qty = Number(formState.value.quantity);
+  
+  if (!Number.isFinite(qty) || qty <= 0 || !Number.isInteger(qty)) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Cantidad debe ser un número entero positivo.', life: 5000 });
+    return;
+  }
+  
+  if (!formState.value.productId) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Debe seleccionar un producto.', life: 5000 });
+    return;
+  }
+  
+  if (!formState.value.targetWarehouseId) {
+    toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'Debe seleccionar un almacén destino.', life: 5000 });
+    return;
+  }
+  
+  if (qty > currentMaxStock.value) {
+    toast.add({ severity: 'error', summary: 'Stock Insuficiente', detail: 'La cantidad excede el stock disponible.', life: 5000 });
+    return;
+  }
+
   isLoading.value = true;
   try {
-    await InventoryService.transferProducts(warehouseId, formState.value.productId, {
+    const payload = {
       destinationWarehouseId: formState.value.targetWarehouseId,
-      quantityToTransfer: Number(formState.value.quantity),
-      expirationDate: formState.value.expirationDate || null
-    });
-    alert('Transferencia realizada con éxito');
-    router.go(-1);
+      quantityToTransfer: qty
+    };
+    
+    if (formState.value.expirationDate) {
+      payload.expirationDate = formState.value.expirationDate;
+    }
+
+    await InventoryService.transferProducts(warehouseId, formState.value.productId, payload);
+    toast.add({ severity: 'success', summary: 'Éxito', detail: 'Transferencia realizada con éxito', life: 3000 });
+    setTimeout(() => router.go(-1), 1000);
   } catch (err) {
-    console.error('Error transferring products:', err.response?.data);
-    alert('Error: ' + (err.response?.data?.message || 'No se pudo transferir'));
+    const status = err.response?.status;
+    const errorData = err.response?.data;
+    console.error('[transfer] HTTP status:', status);
+    console.error('[transfer] Error body:', errorData);
+    console.error('[transfer] Full error:', err);
+    let errorMsg = 'No se pudo transferir los productos.';
+
+    if (typeof errorData === 'string') {
+      errorMsg = errorData;
+    } else if (errorData?.detail) {
+      errorMsg = errorData.detail;
+      if (errorMsg.includes('does not exist')) {
+        errorMsg = 'El inventario para este producto no existe. Verifica que haya stock agregado previamente.';
+      }
+    } else if (errorData?.errors) {
+      errorMsg = Object.values(errorData.errors).flat().join(' ');
+    } else if (errorData?.message) {
+      errorMsg = errorData.message;
+    } else if (err.message) {
+      errorMsg = err.message;
+    }
+
+    toast.add({ severity: 'error', summary: 'Error de Transferencia', detail: errorMsg, life: 7000 });
   } finally {
     isLoading.value = false;
   }
