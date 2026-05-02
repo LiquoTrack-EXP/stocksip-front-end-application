@@ -19,7 +19,8 @@ export default {
       passwordVisible: false,
       confirmPasswordVisible: false,
       loading: false,
-      error: ""
+      error: "",
+      showTerms: false
     };
   },
   methods: {
@@ -73,6 +74,9 @@ export default {
     toggleConfirmPasswordVisibility() {
       this.confirmPasswordVisible = !this.confirmPasswordVisible;
     },
+    openTerms() {
+      this.showTerms = true;
+    }
   },
 };
 </script>
@@ -261,9 +265,30 @@ export default {
             <label class="checkbox-wrapper">
               <input type="checkbox" required />
               <span class="checkmark"></span>
-              Acepto los <a href="https://onedrive.live.com/" target="_blank" class="terms-link" @click.stop>Términos y Condiciones</a>
+              Acepto los <a href="javascript:void(0)" class="terms-link" @click.stop="openTerms">Términos y Condiciones</a>
             </label>
           </div>
+
+          <pv-dialog v-model:visible="showTerms" modal header="Términos y Condiciones" :style="{ width: '50vw' }" :breakpoints="{ '960px': '75vw', '641px': '100vw' }">
+            <div class="terms-content">
+              <h3>1. Aceptación de los Términos</h3>
+              <p>Al registrarse en StockSip, usted acepta cumplir con nuestros términos de servicio y todas las leyes y regulaciones aplicables.</p>
+              
+              <h3>2. Uso del Servicio</h3>
+              <p>StockSip es una plataforma de gestión de inventarios para licores. El usuario es responsable de mantener la confidencialidad de su cuenta.</p>
+              
+              <h3>3. Privacidad y Datos</h3>
+              <p>Sus datos personales serán procesados de acuerdo con nuestra Política de Privacidad. No compartimos información con terceros sin su consentimiento explícito.</p>
+              
+              <h3>4. Limitación de Responsabilidad</h3>
+              <p>StockSip no se hace responsable por errores en la entrada de datos por parte del usuario o interrupciones menores en el servicio.</p>
+              
+              <p style="margin-top: 20px; font-weight: bold;">Al marcar la casilla de aceptación, usted confirma que ha leído y comprendido estos términos.</p>
+            </div>
+            <template #footer>
+              <pv-button label="Cerrar" icon="pi pi-check" @click="showTerms = false" autofocus />
+            </template>
+          </pv-dialog>
 
           <pv-button
             type="submit"
@@ -816,5 +841,19 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.terms-content {
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+.terms-content h3 {
+  margin-top: 20px;
+  margin-bottom: 8px;
+  color: var(--top-bg);
+  font-size: 1.1rem;
+}
+.terms-content p {
+  margin-bottom: 12px;
 }
 </style>
