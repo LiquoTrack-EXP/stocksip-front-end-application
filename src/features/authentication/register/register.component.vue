@@ -60,10 +60,21 @@ export default {
         this.$toast.add({ severity: 'success', summary: 'Éxito', detail: 'Registration successful! Please login.', life: 3000 });
         this.$router.push("/");
       } catch (err) {
-        console.error("Register error detail:", err.response?.data);
-        const backendError = err.response?.data?.message || err.response?.data?.errors || "Registration failed.";
-        this.error = typeof backendError === 'object' ? JSON.stringify(backendError) : backendError;
-        this.$toast.add({ severity: 'error', summary: 'Error del Servidor', detail: this.error, life: 5000 });
+        const errorData = err.response?.data;
+        console.error("Register error detail:", errorData);
+        let errorMsg = "La suscripción o registro falló.";
+
+        if (typeof errorData === 'string') {
+          errorMsg = errorData;
+        } else if (errorData && errorData.errors) {
+          errorMsg = Object.values(errorData.errors).flat().join(' ');
+        } else if (errorData && errorData.message) {
+          errorMsg = errorData.message;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+        
+        this.$toast.add({ severity: 'error', summary: 'Error del Servidor', detail: errorMsg, life: 7000 });
       } finally {
         this.loading = false;
       }

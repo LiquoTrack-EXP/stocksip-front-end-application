@@ -92,15 +92,20 @@ export default {
       } catch (err) {
         const errorData = err.response?.data;
         console.error('Error creating warehouse:', errorData);
-        let errorMsg = 'No se pudo crear el almacén. Verifica los datos.';
+        let errorMsg = 'No se pudo crear el almacén.';
+
         if (typeof errorData === 'string') {
           errorMsg = errorData;
+        } else if (errorData && errorData.errors) {
+          // Handle ASP.NET Core validation errors object
+          errorMsg = Object.values(errorData.errors).flat().join(' ');
         } else if (errorData && errorData.message) {
           errorMsg = errorData.message;
         } else if (err.message) {
           errorMsg = err.message;
         }
-        this.$toast.add({ severity: 'error', summary: 'Error', detail: errorMsg, life: 5000 });
+        
+        this.$toast.add({ severity: 'error', summary: 'Error del Servidor', detail: errorMsg, life: 5000 });
       } finally {
         this.isLoading = false;
       }

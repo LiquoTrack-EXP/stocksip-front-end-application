@@ -100,8 +100,21 @@ const saveProduct = async () => {
     toast.add({ severity: 'success', summary: 'Éxito', detail: 'Producto actualizado con éxito', life: 3000 });
     setTimeout(() => router.push('/storage'), 1000);
   } catch (err) {
-    console.error('Error updating product:', err.response?.data);
-    toast.add({ severity: 'error', summary: 'Error', detail: err.response?.data?.message || 'Error desconocido', life: 5000 });
+    const errorData = err.response?.data;
+    console.error('Error updating product:', errorData);
+    let errorMsg = 'No se pudo actualizar el producto.';
+    
+    if (typeof errorData === 'string') {
+      errorMsg = errorData;
+    } else if (errorData && errorData.errors) {
+      errorMsg = Object.values(errorData.errors).flat().join(' ');
+    } else if (errorData && errorData.message) {
+      errorMsg = errorData.message;
+    } else if (err.message) {
+      errorMsg = err.message;
+    }
+
+    toast.add({ severity: 'error', summary: 'Error del Servidor', detail: errorMsg, life: 7000 });
   } finally {
     isLoading.value = false;
   }

@@ -69,13 +69,25 @@ export default {
         });
         this.$router.go(-1);
       } catch (err) {
-        console.error("Error creating user:", err.response?.data);
+        const errorData = err.response?.data;
+        console.error("Error creating user:", errorData);
+        let errorMsg = "No se pudo invitar al trabajador.";
+
+        if (typeof errorData === "string") {
+          errorMsg = errorData;
+        } else if (errorData && errorData.errors) {
+          errorMsg = Object.values(errorData.errors).flat().join(" ");
+        } else if (errorData && errorData.message) {
+          errorMsg = errorData.message;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
+
         this.$toast.add({
           severity: "error",
-          summary: "Error",
-          detail:
-            err.response?.data?.message || "No se pudo invitar al usuario",
-          life: 5000,
+          summary: "Error del Servidor",
+          detail: errorMsg,
+          life: 7000,
         });
       } finally {
         this.isLoading = false;
