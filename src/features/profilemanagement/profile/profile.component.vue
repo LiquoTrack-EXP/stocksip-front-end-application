@@ -69,7 +69,7 @@ const saveProfile = async () => {
     toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El nombre y apellido no pueden contener números.', life: 5000 });
     return;
   }
-  if (!/^\d+$/.test(editForm.value.phoneNumber)) {
+  if (!/^\+?\d+$/.test(editForm.value.phoneNumber)) {
     toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'El número de teléfono solo debe contener números.', life: 5000 });
     return;
   }

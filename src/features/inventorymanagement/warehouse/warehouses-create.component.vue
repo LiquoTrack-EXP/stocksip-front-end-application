@@ -18,8 +18,8 @@ export default {
         ciudad: "",
         distrito: "",
         codigoPostal: "",
-        pais: "",
-        capacidad: 500,
+        pais: "Perú",
+        capacidad: 0,
         tempMin: "",
         tempMax: "",
       },
@@ -59,10 +59,6 @@ export default {
       }
       if (parseFloat(this.form.tempMin) > parseFloat(this.form.tempMax)) {
         this.$toast.add({ severity: 'error', summary: 'Temperatura Errónea', detail: 'La temperatura mínima no puede ser mayor a la máxima.', life: 5000 });
-        return;
-      }
-      if (this.form.capacidad < 500) {
-        this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La capacidad mínima de un almacén es 500.', life: 5000 });
         return;
       }
 
@@ -170,7 +166,7 @@ export default {
               <div class="field-group">
                 <label>Capacidad (unidades) *</label>
                 <div class="input-wrap mockup-shadow">
-                  <input type="number" v-model="form.capacidad" placeholder="Ej: 5000" min="500" required />
+                  <input type="number" v-model="form.capacidad" placeholder="Ej: 5000" min="0" required />
                 </div>
               </div>
               <div class="field-group">
@@ -216,9 +212,8 @@ export default {
               <div class="field-group">
                 <label>País *</label>
                 <div class="input-wrap mockup-shadow select-arrow">
-                  <select v-model="form.pais" required>
-                    <option value="" disabled>Seleccione un país</option>
-                    <option v-for="pais in paises" :key="pais" :value="pais">{{ pais }}</option>
+                  <select v-model="form.pais" required disabled>
+                    <option value="Perú">Perú</option>
                   </select>
                 </div>
               </div>

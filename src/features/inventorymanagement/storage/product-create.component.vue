@@ -103,6 +103,7 @@ export default {
       }
       if (Number(this.form.contentCapacity) < Number(this.form.minStock)) {
         this.$toast.add({ severity: 'warn', summary: 'Advertencia', detail: 'La cantidad ingresada es menor al stock mínimo establecido.', life: 5000 });
+        return;
       }
 
 
