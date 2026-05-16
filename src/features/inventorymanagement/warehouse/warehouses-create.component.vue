@@ -24,8 +24,22 @@ export default {
         tempMax: "",
       },
       paises: ["Perú", "Colombia", "Chile", "Argentina", "Ecuador", "México", "Bolivia", "Uruguay", "Paraguay", "Brasil"],
-      ciudades: ["Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco", "Iquitos", "Huancayo", "Tacna", "Pucallpa"],
-      distritos: ["Miraflores", "San Isidro", "Surco", "San Borja", "La Molina", "Barranco", "Magdalena", "Pueblo Libre", "San Miguel", "Lince"],
+      ciudades: [
+        "Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco", "Iquitos", "Huancayo", 
+        "Tacna", "Pucallpa", "Ayacucho", "Huánuco", "Cerro de Pasco", "Junín", "Ica", "Nazca",
+        "Chincha", "Pisco", "Moquegua", "Tumbes", "Lambayeque", "Cajamarca", "Jaén", "Tarapoto",
+        "Chimbote", "Casma", "Puerto Maldonado", "Abancay", "Andahuaylas", "Sicuani"
+      ],
+      distritos: [
+        "Miraflores", "San Isidro", "Surco", "San Borja", "La Molina", "Barranco", "Magdalena", 
+        "Pueblo Libre", "San Miguel", "Lince", "Jesús María", "Breña", "Rímac", "Los Olivos", 
+        "San Martín de Porres", "Carabayllo", "Comas", "Independencia", "Puente Piedra", "Ancón",
+        "Chaclacayo", "Lurín", "Punta Hermosa", "San Bartolo", "Santa María del Mar", "Pucusana",
+        "Villa El Salvador", "Villa María del Triunfo", "Chorrillos", "Pachacamac", "Ate",
+        "Cieneguilla", "San Antonio", "Huachipa", "Oasis", "Ollantaytambo", "Urubamba", "Yanaoca",
+        "Quillabamba", "Abancay", "Andahuaylas", "Huancavelica", "Ayacucho", "Huanta", "Ica",
+        "Nazca", "Chincha", "Pisco", "Atico", "Mollendo", "Arequipa", "Yanahuara", "Cayma"
+      ]
     };
   },
   methods: {
@@ -55,6 +69,10 @@ export default {
       }
       if (/^\d+$/.test(this.form.calle)) {
         this.$toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La dirección no puede contener solo números.', life: 5000 });
+        return;
+      }
+      if (this.form.codigoPostal && !/^\d{5}$/.test(this.form.codigoPostal)) {
+        this.$toast.add({ severity: 'error', summary: 'Código Postal Inválido', detail: 'El código postal debe contener exactamente 5 dígitos.', life: 5000 });
         return;
       }
       if (parseFloat(this.form.tempMin) > parseFloat(this.form.tempMax)) {

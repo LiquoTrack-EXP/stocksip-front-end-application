@@ -1,9 +1,5 @@
 import httpClient from '@/api/axios';
 
-
-
-
-
 /**
  * Service AuthService
  */

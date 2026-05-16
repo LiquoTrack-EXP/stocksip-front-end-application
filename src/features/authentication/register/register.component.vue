@@ -66,6 +66,10 @@ export default {
 
         if (typeof errorData === 'string') {
           errorMsg = errorData;
+        } else if (errorData && errorData.details) {
+          errorMsg = errorData.details;
+        } else if (errorData && errorData.error) {
+          errorMsg = errorData.error;
         } else if (errorData && errorData.errors) {
           errorMsg = Object.values(errorData.errors).flat().join(' ');
         } else if (errorData && errorData.message) {
@@ -280,21 +284,73 @@ export default {
             </label>
           </div>
 
-          <pv-dialog v-model:visible="showTerms" modal header="Términos y Condiciones" :style="{ width: '50vw' }" :breakpoints="{ '960px': '75vw', '641px': '100vw' }">
+          <pv-dialog v-model:visible="showTerms" modal header="Términos y Condiciones" :style="{ width: '90vw', maxWidth: '800px', maxHeight: '90vh' }" :breakpoints="{ '960px': '95vw', '641px': '100vw' }">
             <div class="terms-content">
-              <h3>1. Aceptación de los Términos</h3>
-              <p>Al registrarse en StockSip, usted acepta cumplir con nuestros términos de servicio y todas las leyes y regulaciones aplicables.</p>
-              
-              <h3>2. Uso del Servicio</h3>
-              <p>StockSip es una plataforma de gestión de inventarios para licores. El usuario es responsable de mantener la confidencialidad de su cuenta.</p>
-              
-              <h3>3. Privacidad y Datos</h3>
-              <p>Sus datos personales serán procesados de acuerdo con nuestra Política de Privacidad. No compartimos información con terceros sin su consentimiento explícito.</p>
-              
-              <h3>4. Limitación de Responsabilidad</h3>
-              <p>StockSip no se hace responsable por errores en la entrada de datos por parte del usuario o interrupciones menores en el servicio.</p>
-              
-              <p style="margin-top: 20px; font-weight: bold;">Al marcar la casilla de aceptación, usted confirma que ha leído y comprendido estos términos.</p>
+              <h3>1. Descripción del Servicio</h3>
+              <p>StockSip es una plataforma de software como servicio (SaaS) diseñada para optimizar la gestión de inventarios en licorerías. A través de sus aplicaciones web y móvil, el servicio permite a los usuarios:</p>
+              <ul>
+                <li>Gestionar almacenes e inventarios en tiempo real.</li>
+                <li>Registrar y controlar el stock de productos de licorería.</li>
+                <li>Recibir alertas automáticas sobre productos próximos a vencer o con stock bajo.</li>
+                <li>Acceder a guías de conservación y cuidado de productos.</li>
+                <li>Administrar empleados, pedidos, catálogos y suscripciones.</li>
+              </ul>
+              <p>El acceso al servicio se realiza a través de los siguientes canales: aplicación web desplegada en Vercel, aplicación móvil nativa para Android y aplicación móvil multiplataforma disponible mediante GitHub Releases y Firebase App Distribution.</p>
+
+              <h3>2. Partes del Acuerdo</h3>
+              <p><strong>Proveedor del servicio:</strong> LiquoTrack, startup responsable del desarrollo y mantenimiento de la plataforma StockSip.</p>
+              <p><strong>Usuario:</strong> Toda persona natural o jurídica que se registre en la plataforma bajo uno de los roles disponibles: dueño de licorería, proveedor de productos de licorería o empleado autorizado.</p>
+
+              <h3>3. Roles y Acceso</h3>
+              <p>Durante el registro, el usuario debe seleccionar el rol que corresponde al tipo de negocio que gestiona. Cada rol habilita funcionalidades específicas dentro de la plataforma:</p>
+              <ul>
+                <li><strong>Dueño de licorería:</strong> Acceso a gestión de almacenes, inventario, empleados, alertas, catálogos y órdenes de compra.</li>
+                <li><strong>Proveedor de productos:</strong> Acceso a gestión de catálogos, guías de conservación, órdenes de venta y facturación.</li>
+                <li><strong>Empleado:</strong> Acceso restringido según los permisos otorgados por el administrador de la cuenta.</li>
+              </ul>
+              <p>El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso. El cierre de sesión desde cualquier dispositivo está disponible en todo momento para proteger la seguridad de la cuenta.</p>
+
+              <h3>4. Planes y Suscripciones</h3>
+              <p>StockSip ofrece distintos planes de suscripción con precios variables según el tamaño del negocio y el número de sucursales. Los detalles de cada plan, incluyendo funcionalidades incluidas, precios mensuales y anuales, y condiciones de renovación, se encuentran disponibles en la sección "Planes" del sitio web oficial.</p>
+              <p>El usuario puede gestionar su suscripción activa desde la sección "Suscripciones" dentro de la plataforma. La renovación de la suscripción se realiza de forma automática al término del período contratado, salvo que el usuario indique lo contrario con anticipación.</p>
+
+              <h3>5. Obligaciones del Proveedor</h3>
+              <p>LiquoTrack se compromete a:</p>
+              <ul>
+                <li>Mantener la disponibilidad de la plataforma y sus servicios de forma continua.</li>
+                <li>Notificar a los usuarios ante interrupciones planificadas o cambios relevantes en el servicio.</li>
+                <li>Proteger la información personal y los datos de inventario de cada usuario conforme a las normativas de privacidad aplicables.</li>
+                <li>Proveer soporte técnico a los usuarios registrados ante incidencias en el uso de la plataforma.</li>
+                <li>Garantizar la integridad de los datos almacenados en la base de datos MongoDB Atlas desplegada en la nube.</li>
+              </ul>
+
+              <h3>6. Obligaciones del Usuario</h3>
+              <p>El usuario se compromete a:</p>
+              <ul>
+                <li>Proporcionar información veraz y actualizada durante el registro y uso de la plataforma.</li>
+                <li>No compartir sus credenciales de acceso con terceros no autorizados.</li>
+                <li>Utilizar la plataforma únicamente para los fines establecidos en este acuerdo.</li>
+                <li>No intentar vulnerar, alterar o acceder de forma no autorizada a los sistemas, datos o cuentas de otros usuarios.</li>
+                <li>Aceptar los Términos y Condiciones vigentes antes de completar su registro en la plataforma.</li>
+              </ul>
+
+              <h3>7. Privacidad y Protección de Datos</h3>
+              <p>StockSip recopila y almacena únicamente la información necesaria para el funcionamiento del servicio, incluyendo datos de perfil, información de inventario, historial de pedidos y datos de facturación. Esta información no será compartida con terceros sin el consentimiento expreso del usuario, salvo requerimiento legal.</p>
+              <p>Los datos son almacenados en MongoDB Atlas bajo un entorno de nube seguro con acceso restringido. Las imágenes y archivos multimedia son gestionados a través de Cloudinary, y los pagos son procesados mediante Mercado Pago, plataforma que cuenta con sus propios estándares de seguridad en transacciones.</p>
+
+              <h3>8. Propiedad Intelectual</h3>
+              <p>Todo el contenido de la plataforma StockSip, incluyendo diseño, logotipos, código fuente, funcionalidades y documentación, es propiedad intelectual de LiquoTrack. Queda prohibida su reproducción, distribución o uso fuera del contexto autorizado sin el consentimiento previo del equipo.</p>
+
+              <h3>9. Limitación de Responsabilidad</h3>
+              <p>LiquoTrack no será responsable por pérdidas derivadas del uso incorrecto de la plataforma, la introducción de datos erróneos por parte del usuario, ni por interrupciones del servicio causadas por factores externos como fallas en servicios de terceros (Vercel, Azure, MongoDB Atlas, Mercado Pago o Cloudinary).</p>
+
+              <h3>10. Modificaciones al Acuerdo</h3>
+              <p>LiquoTrack se reserva el derecho de actualizar los términos del presente acuerdo. Ante cualquier modificación relevante, el usuario será notificado mediante la plataforma o por correo electrónico. El uso continuado del servicio tras la notificación implica la aceptación de los nuevos términos.</p>
+
+              <h3>11. Vigencia y Terminación</h3>
+              <p>El acuerdo entra en vigor desde el momento en que el usuario completa su registro y acepta los términos y condiciones de la plataforma. El usuario puede dar por terminado el acuerdo cancelando su suscripción activa. LiquoTrack se reserva el derecho de suspender o eliminar cuentas que incumplan las condiciones establecidas en el presente documento.</p>
+
+              <p style="margin-top: 30px; font-weight: bold; text-align: center;">Al marcar la casilla de aceptación, usted confirma que ha leído y comprendido estos términos y condiciones.</p>
             </div>
             <template #footer>
               <pv-button label="Cerrar" icon="pi pi-check" @click="showTerms = false" autofocus />
@@ -855,16 +911,114 @@ export default {
 }
 
 .terms-content {
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--text-primary);
+  font-size: 14px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
 }
+
+.terms-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terms-content::-webkit-scrollbar-track {
+  background: rgba(43, 0, 13, 0.05);
+  border-radius: 10px;
+}
+
+.terms-content::-webkit-scrollbar-thumb {
+  background: rgba(229, 62, 62, 0.3);
+  border-radius: 10px;
+}
+
+.terms-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(229, 62, 62, 0.5);
+}
+
 .terms-content h3 {
-  margin-top: 20px;
-  margin-bottom: 8px;
+  margin-top: 24px;
+  margin-bottom: 12px;
   color: var(--top-bg);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
 }
+
+.terms-content h3:first-child {
+  margin-top: 0;
+}
+
 .terms-content p {
   margin-bottom: 12px;
+  text-align: justify;
+}
+
+.terms-content ul {
+  margin: 12px 0 16px 20px;
+  padding: 0;
+  list-style-position: outside;
+}
+
+.terms-content li {
+  margin-bottom: 8px;
+  text-align: justify;
+}
+
+/* Dialog Styles */
+:deep(.p-dialog) {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+:deep(.p-dialog .p-dialog-header) {
+  background: linear-gradient(135deg, rgba(43, 0, 13, 0.96) 0%, rgba(74, 27, 42, 0.96) 100%);
+  color: white;
+  border: none;
+  padding: 20px 24px;
+}
+
+:deep(.p-dialog .p-dialog-header .p-dialog-title) {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+:deep(.p-dialog .p-dialog-content) {
+  padding: 24px;
+  background: #ffffff;
+}
+
+:deep(.p-dialog .p-dialog-footer) {
+  background: #ffffff;
+  border-top: 1px solid rgba(43, 0, 13, 0.08);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+:deep(.p-dialog .p-dialog-close-icon) {
+  color: white;
+  font-size: 18px;
+}
+
+:deep(.p-dialog .p-dialog-close-icon:hover) {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:deep(.p-dialog-footer button) {
+  background: linear-gradient(135deg, var(--accent-red) 0%, rgba(229, 62, 62, 0.85) 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 10px 24px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.p-dialog-footer button:hover) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(229, 62, 62, 0.3) !important;
 }
 </style>
