@@ -34,6 +34,16 @@ export default {
         return;
       }
 
+      if (this.newUser.password.length < 7) {
+        this.$toast.add({
+          severity: "error",
+          summary: "Contraseña Débil",
+          detail: "La contraseña debe tener al menos 7 caracteres.",
+          life: 5000,
+        });
+        return;
+      }
+
       if (!/^\+?\d+$/.test(this.newUser.phoneNumber)) {
         this.$toast.add({
           severity: "error",
@@ -75,6 +85,10 @@ export default {
 
         if (typeof errorData === "string") {
           errorMsg = errorData;
+        } else if (errorData && errorData.details) {
+          errorMsg = errorData.details;
+        } else if (errorData && errorData.error) {
+          errorMsg = errorData.error;
         } else if (errorData && errorData.errors) {
           errorMsg = Object.values(errorData.errors).flat().join(" ");
         } else if (errorData && errorData.message) {

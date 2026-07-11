@@ -54,6 +54,10 @@ export default {
 
         if (typeof errorData === "string") {
           errorMsg = errorData;
+        } else if (errorData && errorData.details) {
+          errorMsg = errorData.details;
+        } else if (errorData && errorData.error) {
+          errorMsg = errorData.error;
         } else if (errorData && errorData.errors) {
           errorMsg = Object.values(errorData.errors).flat().join(" ");
         } else if (errorData && errorData.message) {

@@ -32,8 +32,22 @@ const imageFile = ref(null);
 const isLoading = ref(false);
 
 const paises = ["Perú", "Colombia", "Chile", "Argentina", "Ecuador", "México", "Bolivia", "Uruguay", "Paraguay", "Brasil"];
-const ciudades = ["Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco", "Iquitos", "Huancayo", "Tacna", "Pucallpa"];
-const distritos = ["Miraflores", "San Isidro", "Surco", "San Borja", "La Molina", "Barranco", "Magdalena", "Pueblo Libre", "San Miguel", "Lince"];
+const ciudades = [
+  "Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco", "Iquitos", "Huancayo", 
+  "Tacna", "Pucallpa", "Ayacucho", "Huánuco", "Cerro de Pasco", "Junín", "Ica", "Nazca",
+  "Chincha", "Pisco", "Moquegua", "Tumbes", "Lambayeque", "Cajamarca", "Jaén", "Tarapoto",
+  "Chimbote", "Casma", "Puerto Maldonado", "Abancay", "Andahuaylas", "Sicuani"
+];
+const distritos = [
+  "Miraflores", "San Isidro", "Surco", "San Borja", "La Molina", "Barranco", "Magdalena", 
+  "Pueblo Libre", "San Miguel", "Lince", "Jesús María", "Breña", "Rímac", "Los Olivos", 
+  "San Martín de Porres", "Carabayllo", "Comas", "Independencia", "Puente Piedra", "Ancón",
+  "Chaclacayo", "Lurín", "Punta Hermosa", "San Bartolo", "Santa María del Mar", "Pucusana",
+  "Villa El Salvador", "Villa María del Triunfo", "Chorrillos", "Pachacamac", "Ate",
+  "Cieneguilla", "San Antonio", "Huachipa", "Oasis", "Ollantaytambo", "Urubamba", "Yanaoca",
+  "Quillabamba", "Abancay", "Andahuaylas", "Huancavelica", "Ayacucho", "Huanta", "Ica",
+  "Nazca", "Chincha", "Pisco", "Atico", "Mollendo", "Arequipa", "Yanahuara", "Cayma"
+];
 
 onMounted(async () => {
   if (warehouseId.value) {
@@ -77,6 +91,10 @@ const saveWarehouse = async () => {
   }
   if (/^\d+$/.test(formState.value.street)) {
     toast.add({ severity: 'error', summary: 'Error de Validación', detail: 'La dirección no puede contener solo números.', life: 5000 });
+    return;
+  }
+  if (formState.value.postalCode && !/^\d{5}$/.test(formState.value.postalCode)) {
+    toast.add({ severity: 'error', summary: 'Código Postal Inválido', detail: 'El código postal debe contener exactamente 5 dígitos.', life: 5000 });
     return;
   }
 

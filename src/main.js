@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import { PrimeVue } from '@primevue/core';
+import PrimeVue from 'primevue/config';
 import Material from '@primeuix/themes/material';
 import router from "./router/index.js";
 import i18n from './i18n.js';
