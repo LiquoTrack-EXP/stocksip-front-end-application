@@ -94,10 +94,22 @@
     "products_in_catalog": "Productos en Catálogo",
     "empty_items": "No hay productos seleccionados. Usa el botón + para agregar.",
     "publish_catalog": "Publicar Catálogo",
+    "upload_image": "Subir imagen",
+    "change_image": "Cambiar imagen",
+    "price": "Precio",
+    "stock": "Stock",
+    "validation": {
+      "name_required": "El nombre del catálogo es obligatorio",
+      "email_invalid": "El formato del email no es válido",
+      "at_least_one_product": "Debes agregar al menos un producto",
+      "stock_required": "El stock es obligatorio",
+      "price_invalid": "El precio no es válido"
+    },
+    "order_conflict": "No se puede eliminar el producto porque tiene pedidos confirmados asociados",
     "modal": { "warehouse": "Seleccionar Almacén", "products": "Seleccionar Productos", "stock_placeholder": "Ingresar stock disponible...", "added": "Agregado" },
     "messages": { "update_success": "Catálogo actualizado exitosamente", "create_success": "Catálogo creado exitosamente", "delete_confirm": "¿Estás seguro de eliminar este catálogo?" },
     "empty_title": "Sin catálogos", "empty_desc": "Aún no has creado ningún catálogo. Presiona \"Nuevo Catálogo\" para comenzar.",
-    "status": { "published": "Publicado", "draft": "Borrador" },
+    "status": { "published": "Publicado", "draft": "No publicado" },
     "publish": "Publicar", "unpublish": "Despublicar", "plural": "catálogos",
     "item_details": {
       "in_stock": "En Stock", "out_of_stock": "Agotado", "about_product": "Sobre el producto",

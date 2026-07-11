@@ -1,13 +1,8 @@
 <script setup>
-/**
- * catalog-create-edit.component component.
- * @displayName catalog-create-edit.component
- * @version 1.0.0
- */
-import { ref, computed, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { CatalogService } from "@/features/procurementordering/services/procurement.service";
+import { CatalogService, PurchaseOrderService } from "@/features/procurementordering/services/procurement.service";
 import {
   WarehouseService,
   ProductService,
@@ -29,6 +24,9 @@ const catalogDescription = ref("");
 const contactEmail = ref("");
 const isPublished = ref(true);
 const catalogItems = ref([]);
+const productImageFiles = ref({});
+const productMaxStock = ref({});
+const itemErrors = reactive({});
 
 const showWarehouseDialog = ref(false);
 const showProductDialog = ref(false);
@@ -39,6 +37,51 @@ const productStockInputs = ref({});
 const isLoading = ref(false);
 const warehouses = ref([]);
 const warehouseProducts = ref([]);
+
+const formErrors = reactive({
+  name: false,
+  email: false,
+  products: false,
+});
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const clearErrors = () => {
+  formErrors.name = false;
+  formErrors.email = false;
+  formErrors.products = false;
+};
+
+const validateForm = () => {
+  clearErrors();
+  let valid = true;
+
+  if (!catalogName.value.trim()) {
+    formErrors.name = true;
+    valid = false;
+  }
+
+  if (contactEmail.value && !emailRegex.test(contactEmail.value)) {
+    formErrors.email = true;
+    valid = false;
+  }
+
+  if (catalogItems.value.length === 0) {
+    formErrors.products = true;
+    valid = false;
+  }
+
+  if (!valid) {
+    toast.add({
+      severity: "error",
+      summary: "Error de Validación",
+      detail: "Corrige los campos resaltados antes de guardar",
+      life: 5000,
+    });
+  }
+
+  return valid;
+};
 
 onMounted(async () => {
   try {
@@ -59,7 +102,10 @@ onMounted(async () => {
       catalogDescription.value = c.description || "";
       contactEmail.value = c.contactEmail || "";
       isPublished.value = c.isPublished || false;
-      catalogItems.value = c.catalogItems || [];
+      catalogItems.value = (c.catalogItems || []).map((item) => ({
+        ...item,
+        imageUrl: item.imageUrl || item.productImage || "",
+      }));
     } catch (err) {
       console.error("Error loading catalog:", err);
     }
@@ -168,12 +214,23 @@ const confirmProductsSelection = async () => {
           });
           return;
         }
+        if (requestedStock <= 0) {
+          toast.add({
+            severity: "error",
+            summary: "Error de Validación",
+            detail: `El stock debe ser mayor a 0 para ${p.name}`,
+            life: 5000,
+          });
+          return;
+        }
+        productMaxStock.value[pid] = p.availableStock;
         catalogItems.value.push({
           productId: pid,
           productName: p.name,
           availableStock: requestedStock,
           amount: 0,
           currency: "USD",
+          imageUrl: "",
           _pendingWarehouseId: selectedWarehouseId.value,
         });
       }
@@ -220,30 +277,151 @@ const confirmProductsSelection = async () => {
 };
 
 const removeCatalogItem = async (productId) => {
-  if (catalogId.value) {
-    try {
-      await CatalogService.removeItemFromCatalog(catalogId.value, productId);
-    } catch (err) {
-      console.error("Error removing item:", err);
+  try {
+    const accountId = localStorage.getItem("accountId");
+    if (accountId && catalogId.value) {
+      const ordersRes = await PurchaseOrderService.getAllPurchaseOrdersByAccount(accountId);
+      const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
+      const hasConfirmedOrder = orders.some(
+        (order) =>
+          (order.status === "confirmed" ||
+           order.status === "shipped" ||
+           order.status === "approved") &&
+          order.items &&
+          order.items.some((item) => item.productId === productId),
+      );
+
+      if (hasConfirmedOrder) {
+        toast.add({
+          severity: "warn",
+          summary: "No se puede eliminar",
+          detail: t("catalogs.order_conflict"),
+          life: 5000,
+        });
+        return;
+      }
     }
+
+    if (catalogId.value) {
+      try {
+        await CatalogService.removeItemFromCatalog(catalogId.value, productId);
+      } catch (err) {
+        console.error("Error removing item:", err);
+      }
+    }
+    catalogItems.value = catalogItems.value.filter(
+      (item) => item.productId !== productId,
+    );
+    delete productImageFiles.value[productId];
+    delete productMaxStock.value[productId];
+    delete itemErrors[productId];
+  } catch (err) {
+    console.error("Error checking orders:", err);
+    if (catalogId.value) {
+      try {
+        await CatalogService.removeItemFromCatalog(catalogId.value, productId);
+      } catch (e) {
+        console.error("Error removing item:", e);
+      }
+    }
+    catalogItems.value = catalogItems.value.filter(
+      (item) => item.productId !== productId,
+    );
+    delete productImageFiles.value[productId];
   }
-  catalogItems.value = catalogItems.value.filter(
-    (item) => item.productId !== productId,
-  );
+};
+
+const updateItemField = (productId, field, value) => {
+  const item = catalogItems.value.find((i) => i.productId === productId);
+  if (!item) return;
+  const numVal = Number(value);
+  if (field === "availableStock") {
+    const max = productMaxStock.value[productId];
+    if (max && numVal > max) {
+      itemErrors[productId] = `El stock no puede superar ${max}`;
+      return;
+    }
+    if (numVal < 0) {
+      itemErrors[productId] = "El stock no puede ser negativo";
+      return;
+    }
+    item.availableStock = numVal;
+  } else if (field === "amount") {
+    if (numVal < 0) {
+      itemErrors[productId] = "El precio no puede ser negativo";
+      return;
+    }
+    item.amount = numVal;
+  } else {
+    item[field] = value;
+  }
+  delete itemErrors[productId];
+  item._dirty = true;
+};
+
+const handleImageSelect = (productId, event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  productImageFiles.value[productId] = file;
+  const item = catalogItems.value.find((i) => i.productId === productId);
+  if (item) {
+    item.imageUrl = URL.createObjectURL(file);
+  }
+};
+
+const getImagePreview = (productId) => {
+  return catalogItems.value.find((i) => i.productId === productId)?.imageUrl || "";
 };
 
 const saveCatalog = async () => {
+  if (!validateForm()) return;
+
   isLoading.value = true;
   try {
     const accountId = localStorage.getItem("accountId");
     const payload = {
-      name: catalogName.value,
+      name: catalogName.value.trim(),
       description: catalogDescription.value,
       contactEmail: contactEmail.value,
     };
 
     if (isEditMode.value && catalogId.value) {
       await CatalogService.updateCatalog(catalogId.value, payload);
+
+      for (const item of catalogItems.value) {
+        if (item._pendingWarehouseId) {
+          try {
+            await CatalogService.addItemToCatalog(catalogId.value, {
+              productId: item.productId,
+              warehouseId: item._pendingWarehouseId,
+              stock: item.availableStock,
+            });
+          } catch (err) {
+            const errMsg = err.response?.data
+              ? JSON.stringify(err.response.data)
+              : err.message;
+            console.error("Error adding pending item:", errMsg);
+          }
+          continue;
+        }
+        if (item._dirty) {
+          try {
+            await CatalogService.updateCatalogItem(catalogId.value, item.productId, {
+              availableStock: item.availableStock,
+              amount: item.amount,
+            });
+          } catch (err) {
+            console.error("Error updating item:", err);
+          }
+        }
+        if (productImageFiles.value[item.productId]) {
+          try {
+            await CatalogService.updateCatalogItemImage(catalogId.value, item.productId, productImageFiles.value[item.productId]);
+          } catch (err) {
+            console.error("Error uploading item image:", err);
+          }
+        }
+      }
     } else {
       const res = await CatalogService.createCatalogForAccount(
         accountId,
@@ -379,12 +557,16 @@ const deleteCatalog = () => {
       <div class="form-container">
         <h2 class="section-title">{{ $t("catalogs.info") }}</h2>
         <div class="form-group glass-panel">
-          <input
-            type="text"
-            v-model="catalogName"
-            :placeholder="$t('catalogs.fields.name')"
-            class="styled-input"
-          />
+          <div class="input-wrapper" :class="{ 'has-error': formErrors.name }">
+            <input
+              type="text"
+              v-model="catalogName"
+              :placeholder="$t('catalogs.fields.name')"
+              class="styled-input"
+              @input="formErrors.name = false"
+            />
+            <span v-if="formErrors.name" class="error-hint">{{ $t("catalogs.validation.name_required") }}</span>
+          </div>
           <div class="divider"></div>
           <input
             type="text"
@@ -393,12 +575,16 @@ const deleteCatalog = () => {
             class="styled-input"
           />
           <div class="divider"></div>
-          <input
-            type="email"
-            v-model="contactEmail"
-            :placeholder="$t('catalogs.fields.email')"
-            class="styled-input"
-          />
+          <div class="input-wrapper" :class="{ 'has-error': formErrors.email }">
+            <input
+              type="email"
+              v-model="contactEmail"
+              :placeholder="$t('catalogs.fields.email')"
+              class="styled-input"
+              @input="formErrors.email = false"
+            />
+            <span v-if="formErrors.email" class="error-hint">{{ $t("catalogs.validation.email_invalid") }}</span>
+          </div>
         </div>
 
         <div class="items-header">
@@ -419,7 +605,7 @@ const deleteCatalog = () => {
           </button>
         </div>
 
-        <div class="items-list-container glass-panel">
+        <div class="items-list-container glass-panel" :class="{ 'has-error': formErrors.products }">
           <div v-if="catalogItems.length === 0" class="empty-items">
             {{ $t("catalogs.empty_items") }}
           </div>
@@ -431,9 +617,52 @@ const deleteCatalog = () => {
             >
               <div class="item-info">
                 <span class="item-name">{{ item.productName }}</span>
-                <span class="item-meta"
-                  >{{ item.unitPrice }} • Stock: {{ item.availableStock }}</span
-                >
+                <div class="item-editable-fields">
+                  <div class="inline-field">
+                    <label class="inline-label">{{ $t("catalogs.price") }}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      :value="item.amount"
+                      @input="updateItemField(item.productId, 'amount', $event.target.value)"
+                      class="inline-input"
+                      :class="{ 'input-error': itemErrors[item.productId] }"
+                    />
+                  </div>
+                  <div class="inline-field">
+                    <label class="inline-label">{{ $t("catalogs.stock") }}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      :max="productMaxStock[item.productId] || ''"
+                      :value="item.availableStock"
+                      @input="updateItemField(item.productId, 'availableStock', $event.target.value)"
+                      class="inline-input"
+                      :class="{ 'input-error': itemErrors[item.productId] }"
+                    />
+                  </div>
+                </div>
+                <span v-if="itemErrors[item.productId]" class="inline-error-hint">{{ itemErrors[item.productId] }}</span>
+                <div class="item-image-field">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    :id="'img-' + item.productId"
+                    @change="handleImageSelect(item.productId, $event)"
+                    class="file-input-hidden"
+                  />
+                  <label :for="'img-' + item.productId" class="upload-label">
+                    <svg viewBox="0 0 24 24" class="upload-icon"><path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                    <span>{{ item.imageUrl ? $t('catalogs.change_image') : $t('catalogs.upload_image') }}</span>
+                  </label>
+                  <div v-if="item.imageUrl" class="image-preview-wrapper">
+                    <img :src="item.imageUrl" class="item-thumb" />
+                    <button class="remove-image-btn" @click="updateItemField(item.productId, 'imageUrl', ''); delete productImageFiles[item.productId]" title="Quitar imagen">
+                      <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
               <button
                 class="icon-btn delete-item-btn"
@@ -448,6 +677,7 @@ const deleteCatalog = () => {
               </button>
             </div>
           </div>
+          <span v-if="formErrors.products" class="error-hint" style="padding: 8px 16px 12px;">{{ $t("catalogs.validation.at_least_one_product") }}</span>
         </div>
 
         <div v-if="isEditMode" class="status-section glass-panel">
@@ -460,7 +690,7 @@ const deleteCatalog = () => {
 
         <button
           class="pill-btn submit-btn"
-          :disabled="!catalogName || isLoading"
+          :disabled="isLoading"
           @click="saveCatalog"
         >
           <span v-if="!isLoading">{{
@@ -720,9 +950,10 @@ const deleteCatalog = () => {
 .catalog-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 12px 16px;
   border-bottom: 1px solid rgba(43, 0, 13, 0.05);
+  gap: 12px;
 }
 .catalog-item:last-child {
   border-bottom: none;
@@ -730,20 +961,139 @@ const deleteCatalog = () => {
 .item-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  gap: 6px;
 }
 .item-name {
   font-size: 15px;
   font-weight: 700;
   color: #2b000d;
 }
-.item-meta {
+.item-editable-fields {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.inline-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.inline-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.inline-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid rgba(43, 0, 13, 0.12);
+  border-radius: 8px;
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.55);
-  margin-top: 2px;
+  color: #2b000d;
+  background: rgba(255, 255, 255, 0.8);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.inline-input:focus {
+  border-color: #4a1b2a;
+}
+.inline-input.input-error {
+  border-color: #e53e3e;
+  background: rgba(229, 62, 62, 0.06);
+}
+.inline-error-hint {
+  font-size: 11px;
+  color: #e53e3e;
+  font-weight: 600;
+}
+.item-image-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.file-input-hidden {
+  display: none;
+}
+.upload-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px dashed rgba(43, 0, 13, 0.25);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a1b2a;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(74, 27, 42, 0.04);
+}
+.upload-label:hover {
+  background: rgba(74, 27, 42, 0.1);
+  border-color: #4a1b2a;
+}
+.upload-icon {
+  width: 16px;
+  height: 16px;
+}
+.image-preview-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+.item-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(43, 0, 13, 0.1);
+}
+.remove-image-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: #e53e3e;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+.remove-image-btn:hover {
+  background: #c53030;
+}
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.input-wrapper.has-error .styled-input {
+  background: rgba(229, 62, 62, 0.06);
+  color: #c53030;
+}
+.has-error {
+  border-color: #e53e3e !important;
+}
+.error-hint {
+  font-size: 12px;
+  color: #e53e3e;
+  padding: 4px 16px 8px;
+  font-weight: 600;
 }
 .delete-item-btn {
   color: #e53e3e;
   padding: 6px;
+  flex-shrink: 0;
 }
 .delete-item-btn:hover {
   background: rgba(229, 62, 62, 0.1);
