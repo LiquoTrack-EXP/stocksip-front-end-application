@@ -74,6 +74,16 @@ export const CatalogService = {
   removeItemFromCatalog(catalogId, productId) {
     return httpClient.delete(import.meta.env.VITE_API_CATALOG_ITEM_REMOVE.replace('{catalogId}', catalogId).replace('{productId}', productId));
   },
+  updateCatalogItem(catalogId, productId, data) {
+    return httpClient.put(import.meta.env.VITE_API_CATALOG_ITEM_UPDATE.replace('{catalogId}', catalogId).replace('{productId}', productId), data);
+  },
+  updateCatalogItemImage(catalogId, productId, file) {
+    const formData = new FormData();
+    formData.append('Image', file);
+    return httpClient.put(import.meta.env.VITE_API_CATALOG_ITEM_UPDATE.replace('{catalogId}', catalogId).replace('{productId}', productId), formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   /**
    * getAccountWithBusiness
    * @param {any} accountId
