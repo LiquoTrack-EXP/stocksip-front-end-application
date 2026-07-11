@@ -97,7 +97,7 @@
     "modal": { "warehouse": "Seleccionar Almacén", "products": "Seleccionar Productos", "stock_placeholder": "Ingresar stock disponible...", "added": "Agregado" },
     "messages": { "update_success": "Catálogo actualizado exitosamente", "create_success": "Catálogo creado exitosamente", "delete_confirm": "¿Estás seguro de eliminar este catálogo?" },
     "empty_title": "Sin catálogos", "empty_desc": "Aún no has creado ningún catálogo. Presiona \"Nuevo Catálogo\" para comenzar.",
-    "status": { "published": "Publicado", "draft": "Borrador" },
+    "status": { "published": "Publicado", "draft": "No publicado" },
     "publish": "Publicar", "unpublish": "Despublicar", "plural": "catálogos",
     "item_details": {
       "in_stock": "En Stock", "out_of_stock": "Agotado", "about_product": "Sobre el producto",

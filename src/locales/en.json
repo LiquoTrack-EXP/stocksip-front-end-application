@@ -97,7 +97,7 @@
     "modal": { "warehouse": "Select Warehouse", "products": "Select Products", "stock_placeholder": "Enter available stock...", "added": "Added" },
     "messages": { "update_success": "Catalog updated successfully", "create_success": "Catalog created successfully", "delete_confirm": "Are you sure you want to delete this catalog?" },
     "empty_title": "No catalogs", "empty_desc": "You haven't created any catalogs yet. Press 'New Catalog' to start.",
-    "status": { "published": "Published", "draft": "Draft" },
+    "status": { "published": "Published", "draft": "Not Published" },
     "publish": "Publish", "unpublish": "Unpublish", "plural": "catalogs",
     "item_details": {
       "in_stock": "In Stock", "out_of_stock": "Out of Stock", "about_product": "About the product",
