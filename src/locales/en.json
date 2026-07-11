@@ -212,23 +212,23 @@
     "products_in_catalog": "Products in Catalog",
     "empty_items": "No products selected. Use the + button to add.",
     "publish_catalog": "Publish Catalog",
-    "modal": {
-      "warehouse": "Select Warehouse",
-      "products": "Select Products",
-      "stock_placeholder": "Enter available stock...",
-      "added": "Added"
+    "upload_image": "Upload image",
+    "change_image": "Change image",
+    "price": "Price",
+    "stock": "Stock",
+    "validation": {
+      "name_required": "Catalog name is required",
+      "email_invalid": "Invalid email format",
+      "at_least_one_product": "At least one product is required",
+      "stock_required": "Stock is required",
+      "price_invalid": "Invalid price"
     },
-    "messages": {
-      "update_success": "Catalog updated successfully",
-      "create_success": "Catalog created successfully",
-      "delete_confirm": "Are you sure you want to delete this catalog?"
-    },
-    "empty_title": "No catalogs",
-    "empty_desc": "You haven't created any catalogs yet. Press 'New Catalog' to start.",
-    "status": { "published": "Published", "draft": "Draft" },
-    "publish": "Publish",
-    "unpublish": "Unpublish",
-    "plural": "catalogs",
+    "order_conflict": "This product has confirmed orders and cannot be removed",
+    "modal": { "warehouse": "Select Warehouse", "products": "Select Products", "stock_placeholder": "Enter available stock...", "added": "Added" },
+    "messages": { "update_success": "Catalog updated successfully", "create_success": "Catalog created successfully", "delete_confirm": "Are you sure you want to delete this catalog?" },
+    "empty_title": "No catalogs", "empty_desc": "You haven't created any catalogs yet. Press 'New Catalog' to start.",
+    "status": { "published": "Published", "draft": "Not Published" },
+    "publish": "Publish", "unpublish": "Unpublish", "plural": "catalogs",
     "item_details": {
       "in_stock": "In Stock",
       "out_of_stock": "Out of Stock",

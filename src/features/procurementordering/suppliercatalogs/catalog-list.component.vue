@@ -22,7 +22,6 @@ const loadCatalogs = async () => {
     if (!accountId) { isLoading.value = false; return; }
     const response = await CatalogService.getAllCatalogsByAccount(accountId);
     catalogs.value = (response.data || [])
-      .filter(c => c.isPublished)
       .map((c) => ({
         ...c,
         productCount: Array.isArray(c.catalogItems) ? c.catalogItems.length : 0,
